@@ -31,19 +31,15 @@ private:
 
 public:
     LSTM(int input_size, int hidden_size) 
-
         : input_size(input_size), hidden_size(hidden_size) {
-
-            h_prev =vector<double>(hidden_size,0,0);
-            c_prev = vector<double>(input_size,0,0);
-
-            initilize_weights();
-
+            h_prev = vector<double>(hidden_size, 0.0);
+            c_prev = vector<double>(hidden_size, 0.0);
+            initialize_weights();
         }
 
     void initialize_weights() {
         default_random_engine generator;
-        normal_distribution<double> distribution(0.0, 0.1);  // Petites valeurs initiales
+        normal_distribution<double> distribution(-1, 1);
 
         auto init_matrix = [&](int rows, int cols) {
             vector<vector<double>> matrix(rows, vector<double>(cols));
@@ -99,19 +95,111 @@ public:
             f_gate[i] = sigmoid(sum + bf[i]);
         }
 
+        // Input gate: i_t = σ(Wi * x + Ui * h_prev + bi)
+        for (int i = 0; i < hidden_size; ++i) {
+            double sum = 0.0;
+            for (int j = 0; j < input_size; ++j) sum += Wi[i][j] * x[j];
+            for (int j = 0; j < hidden_size; ++j) sum += Ui[i][j] * h_prev[j];
+            i_gate[i] = sigmoid(sum + bi[i]);
+        }
+
+        // Candidate cell state: c_tilde = tanh(Wc * x + Uc * h_prev + bc)
+        for (int i = 0; i < hidden_size; ++i) {
+            double sum = 0.0;
+            for (int j = 0; j < input_size; ++j) sum += Wc[i][j] * x[j];
+            for (int j = 0; j < hidden_size; ++j) sum += Uc[i][j] * h_prev[j];
+            c_tilde[i] = tanh(sum + bc[i]);
+        }
 
         // Cell state update: c_next = f_t ⊙ c_prev + i_t ⊙ c_tilde
-        for(int i =0; i <hidden_size; i++) {
+        for (int i = 0; i < hidden_size; ++i) {
             c_next[i] = f_gate[i] * c_prev[i] + i_gate[i] * c_tilde[i];
         }
 
+        // Output gate: o_t = σ(Wo * x + Uo * h_prev + bo)
+        for (int i = 0; i < hidden_size; ++i) {
+            double sum = 0.0;
+            for (int j = 0; j < input_size; ++j) sum += Wo[i][j] * x[j];
+            for (int j = 0; j < hidden_size; ++j) sum += Uo[i][j] * h_prev[j];
+            o_gate[i] = sigmoid(sum + bo[i]);
+        }
+
+        // Hidden state: h_next = o_t ⊙ tanh(c_next)
+        for (int i = 0; i < hidden_size; ++i) {
+            h_next[i] = o_gate[i] * tanh(c_next[i]);
+        }
+
+        // Mettez à jour les états précédents
         c_prev = c_next;
         h_prev = h_next;
 
         return h_next;
-
     }
 
+    void mutate(double mutateRate) {
+        auto mutate_vector = [&](vector<double>& vec) {
+            for (double& value : vec) {
+                if (static_cast<double>(rand()) / RAND_MAX < mutateRate) {
+                    value += static_cast<double>(rand()) / RAND_MAX * 0.1 - 0.05;
+                }
+            }
+        };
+
+        auto mutate_matrix = [&](vector<vector<double>>& matrix) {
+            for (auto& row : matrix) {
+                mutate_vector(row);
+            }
+        };
+
+        mutate_matrix(Wf);
+        mutate_matrix(Wi);
+        mutate_matrix(Wc);
+        mutate_matrix(Wo);
+        mutate_matrix(Uf);
+        mutate_matrix(Ui);
+        mutate_matrix(Uc);
+        mutate_matrix(Uo);
+        
+        mutate_vector(bf);
+        mutate_vector(bi);
+        mutate_vector(bc);
+        mutate_vector(bo);
+    }
+
+    LSTM breed(const LSTM& parent) {
+        LSTM child(input_size, hidden_size);
+        
+        auto breed_vector = [&](vector<double>& child_vector, const vector<double>& this_vector, const vector<double>& parent_vector) {
+            for (int i = 0; i < child_vector.size(); ++i) {
+                child_vector[i] = (this_vector[i] + parent_vector[i]) / 2;
+            }
+        };
+        
+        auto breed_matrix = [&](vector<vector<double>>& child_matrix, const vector<vector<double>>& this_matrix, const vector<vector<double>>& parent_matrix) {
+            for (int i = 0; i < child_matrix.size(); ++i) {
+                breed_vector(child_matrix[i],this_matrix[i],parent_matrix[i]);
+            }
+        };
+
+        breed_matrix(child.Wf, this->Wf, parent.Wf);
+        breed_matrix(child.Wi, this->Wi, parent.Wi);
+        breed_matrix(child.Wc, this->Wc, parent.Wc);
+        breed_matrix(child.Wo, this->Wo, parent.Wo);
+        breed_matrix(child.Uf, this->Uf, parent.Uf);
+        breed_matrix(child.Ui, this->Ui, parent.Ui);
+        breed_matrix(child.Uc, this->Uc, parent.Uc);
+        breed_matrix(child.Uo, this->Uo, parent.Uo);
+
+        breed_vector(child.bf, this->bf, parent.bf);
+        breed_vector(child.bi, this->bi, parent.bi);
+        breed_vector(child.bc, this->bc, parent.bc);
+        breed_vector(child.bo, this->bo, parent.bo);
+
+        return child;
+    }
+
+// Inutile là pour l'évolution
+/*
     void backward(const vector<double>& x, const vector<double>& h_next_grad) {
         // Calculer les gradients pour :
         // - Paramètres (W, U, b)
@@ -141,6 +229,6 @@ public:
         bo = bo - learning_rate * dW;
 
     }
-
+*/
     
 }
