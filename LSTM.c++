@@ -21,11 +21,11 @@ private:
     vector<double> c_prev;
 
     // Fonctions d'activation
-    double sigmoid(double x) {
+    constexpr inline double sigmoid(double x) {
         return 1.0 / (1.0 + exp(-x));
     }
 
-    double tanh(double x) {
+    constexpr inline double tanh(double x) {
         return ::tanh(x);
     }
 
@@ -37,7 +37,7 @@ public:
             initialize_weights();
         }
 
-    void initialize_weights() {
+    constexpr inline void initialize_weights() {
         default_random_engine generator;
         normal_distribution<double> distribution(-1, 1);
 
@@ -51,7 +51,7 @@ public:
             return matrix;
         };
 
-        auto init_vector = [&](int size) {
+        constexpr auto init_vector = [&](int size) {
             vector<double> vec(size);
             for (int i = 0; i < size; ++i) {
                 vec[i] = distribution(generator);
@@ -136,7 +136,7 @@ public:
         return h_next;
     }
 
-    void mutate(double mutateRate) {
+    constexpr void mutate(double mutateRate) {
         auto mutate_vector = [&](vector<double>& vec) {
             for (double& value : vec) {
                 if (static_cast<double>(rand()) / RAND_MAX < mutateRate) {
@@ -166,7 +166,7 @@ public:
         mutate_vector(bo);
     }
 
-    LSTM breed(const LSTM& parent) {
+    constexpr LSTM breed(const LSTM& parent) {
         LSTM child(input_size, hidden_size);
         
         auto breed_vector = [&](vector<double>& child_vector, const vector<double>& this_vector, const vector<double>& parent_vector) {
