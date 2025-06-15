@@ -117,12 +117,29 @@ public:
         // - Paramètres (W, U, b)
         // - États précédents (h_prev, c_prev)
         // - Entrée x
+
+        
     }
 
     void update_parameters(double learning_rate) {
         // Appliquer la descente de gradient :
         // W = W - learning_rate * dW
         // (Idem pour U et b)
+        Wc = Wc - learning_rate * dW;
+        Wi = Wi - learning_rate * dW;
+        Wf = Wf - learning_rate * dw; 
+        Wo = Wo - learning_rate * dW;
+
+        Uc = Uc - learning_rate * dW;
+        Uf= Uf - learning_rate * dW;
+        Ui = Ui - learning_rate * dW;
+        Uo = Uo - learning_rate * dW;
+
+        bf = bf - learning_rate * dW;
+        bi = bi - learning_rate * dW;
+        bc = bc - learning_rate * dW;
+        bo = bo - learning_rate * dW;
+
     }
 
     
