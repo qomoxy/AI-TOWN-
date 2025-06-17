@@ -2,6 +2,7 @@
 #include <cmath>
 #include <iostream>
 #include <random>
+#include <algorithm>
 
 using namespace std;
 
@@ -21,12 +22,12 @@ private:
     vector<double> c_prev;
 
     // Fonctions d'activation
-    constexpr inline double sigmoid(double x) {
-        return 1.0 / (1.0 + exp(-x));
+    double sigmoid(double x) {
+        return 1.0 / (1.0 + std::exp(-x));
     }
 
-    constexpr inline double tanh(double x) {
-        return ::tanh(x);
+    double tanh(double x) {
+        return std::tanh(x);
     }
 
 public:
@@ -37,7 +38,7 @@ public:
             initialize_weights();
         }
 
-    constexpr inline void initialize_weights() {
+    void initialize_weights() {
         default_random_engine generator;
         normal_distribution<double> distribution(-1, 1);
 
@@ -51,7 +52,7 @@ public:
             return matrix;
         };
 
-        constexpr auto init_vector = [&](int size) {
+        auto init_vector = [&](int size) {
             vector<double> vec(size);
             for (int i = 0; i < size; ++i) {
                 vec[i] = distribution(generator);
@@ -136,7 +137,7 @@ public:
         return h_next;
     }
 
-    constexpr void mutate(double mutateRate) {
+    void mutate(double mutateRate) {
         auto mutate_vector = [&](vector<double>& vec) {
             for (double& value : vec) {
                 if (static_cast<double>(rand()) / RAND_MAX < mutateRate) {
@@ -166,7 +167,7 @@ public:
         mutate_vector(bo);
     }
 
-    constexpr LSTM breed(const LSTM& parent) {
+    LSTM breed(const LSTM& parent) {
         LSTM child(input_size, hidden_size);
         
         auto breed_vector = [&](vector<double>& child_vector, const vector<double>& this_vector, const vector<double>& parent_vector) {
@@ -231,4 +232,15 @@ public:
     }
 */
     
+};
+
+int main()
+{
+    LSTM a(5,3);
+    std::vector<double> b =  a.forward({1,5,4,7,4});
+    for(int i = 0 ; i < 5 ; i++)
+    {
+        std::cout << b[i] << std::endl;
+    }
+    return 0;
 }
