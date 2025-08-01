@@ -1,3 +1,4 @@
+#pragma once 
 #include <vector>
 #include <cmath>
 #include <iostream>
@@ -5,50 +6,53 @@
 #include <algorithm>
 #include <tuple>
 
+
 using namespace std;
 
-typedef std::tuple<std::vector<std::vector<std::vector<double>>>,std::vector<std::vector<std::vector<double>>>,std::vector<std::vector<double>>> Weights;
+// La structure pour contenir TOUS les poids du LSTM
+struct LSTM_weight { 
+    std::vector<std::vector<double>> Wf, Wi, Wc, Wo;
+    std::vector<std::vector<double>> Uf, Ui, Uc, Uo;
+    std::vector<double> bf, bi, bc, bo;
+}; 
 
 class LSTM {
 private:
     // Paramètres
     int input_size;
     int hidden_size;
+
     
-    // Poids
-    vector<vector<double>> Wf, Wi, Wc, Wo;
-    vector<vector<double>> Uf, Ui, Uc, Uo;
-    vector<double> bf, bi, bc, bo;
+    LSTM_weight weights;
     
     // États cachés
-    vector<double> h_prev;
-    vector<double> c_prev;
+    std::vector<double> h_prev;
+    std::vector<double> c_prev;
 
     // Fonctions d'activation
     double sigmoid(double x) {
         return 1.0 / (1.0 + std::exp(-x));
     }
 
-    double tanh(double x) {
+    double tanh_act(double x) { // Renommage pour éviter confusion avec std::tanh
         return std::tanh(x);
     }
 
 public:
-
     LSTM(int input_size, int hidden_size) 
         : input_size(input_size), hidden_size(hidden_size) {
-            h_prev = vector<double>(hidden_size, 0.0);
-            c_prev = vector<double>(hidden_size, 0.0);
+            h_prev = std::vector<double>(hidden_size, 0.0);
+            c_prev = std::vector<double>(hidden_size, 0.0);
             initialize_weights();
         }
 
     void initialize_weights() {
-        // Initialisation des poids du modéle 
-        default_random_engine generator;
-        normal_distribution<double> distribution(-1, 1);
+        // Initialisation des poids directement dans le membre 'weights'
+        std::default_random_engine generator;
+        std::normal_distribution<double> distribution(-1.0, 1.0); // Préciser que ce sont des doubles
 
         auto init_matrix = [&](int rows, int cols) {
-            vector<vector<double>> matrix(rows, vector<double>(cols));
+            std::vector<std::vector<double>> matrix(rows, std::vector<double>(cols));
             for (int i = 0; i < rows; ++i) {
                 for (int j = 0; j < cols; ++j) {
                     matrix[i][j] = distribution(generator);
@@ -58,113 +62,91 @@ public:
         };
 
         auto init_vector = [&](int size) {
-            vector<double> vec(size);
+            std::vector<double> vec(size);
             for (int i = 0; i < size; ++i) {
                 vec[i] = distribution(generator);
             }
             return vec;
         };
+        
+       
+        weights.Wf = init_matrix(hidden_size, input_size);
+        weights.Wi = init_matrix(hidden_size, input_size);
+        weights.Wc = init_matrix(hidden_size, input_size);
+        weights.Wo = init_matrix(hidden_size, input_size);
 
-        // Initialisation des poids d'entrée (hidden_size x input_size)
-        Wf = init_matrix(hidden_size, input_size);
-        Wi = init_matrix(hidden_size, input_size);
-        Wc = init_matrix(hidden_size, input_size);
-        Wo = init_matrix(hidden_size, input_size);
+        weights.Uf = init_matrix(hidden_size, hidden_size);
+        weights.Ui = init_matrix(hidden_size, hidden_size);
+        weights.Uc = init_matrix(hidden_size, hidden_size);
+        weights.Uo = init_matrix(hidden_size, hidden_size);
 
-        // Initialisation des poids récurrents (hidden_size x hidden_size)
-        Uf = init_matrix(hidden_size, hidden_size);
-        Ui = init_matrix(hidden_size, hidden_size);
-        Uc = init_matrix(hidden_size, hidden_size);
-        Uo = init_matrix(hidden_size, hidden_size);
-
-        // Initialisation des biais
-        bf = init_vector(hidden_size);
-        bi = init_vector(hidden_size);
-        bc = init_vector(hidden_size);
-        bo = init_vector(hidden_size);
+        weights.bf = init_vector(hidden_size);
+        weights.bi = init_vector(hidden_size);
+        weights.bc = init_vector(hidden_size);
+        weights.bo = init_vector(hidden_size);
     }
 
-    Weights getWeights()
-    {
-        //Récupére les poids actuelle du poids
-        Weights w;
-        get<0>(w) = {Wf,Wi,Wc, Wo};
-        get<1>(w) = {Uf, Ui, Uc, Uo};
-        get<2>(w) = {bf,bi,bc,bo};
-        return w;
+    
+    LSTM_weight getWeights() const { 
+        return this->weights;
     }
     
-    void setWeights(Weights w)
-    {
-        // Modifie les poids du modéle à w.
-        Wf = get<0>(w)[0];
-        Wi = get<0>(w)[1];
-        Wc = get<0>(w)[2];
-        Wo = get<0>(w)[3];
-        
-        Uf = get<1>(w)[0];
-        Ui= get<1>(w)[1];
-        Uc = get<1>(w)[2];
-        Uo = get<1>(w)[3];
-        
-        bf = get<2>(w)[0];
-        bi = get<2>(w)[1];
-        bc = get<2>(w)[2];
-        bo = get<2>(w)[3];
+    
+    void setWeights(const LSTM_weight& new_weights) { 
+        this->weights = new_weights;
     }
 
-    vector<double> forward(const vector<double>& x) {
-        vector<double> f_gate(hidden_size);
-        vector<double> h_gate(hidden_size);
-        vector<double> o_gate(hidden_size);
-        vector<double> i_gate(hidden_size);
-        vector<double> c_tilde(hidden_size);
-        vector<double> h_next(hidden_size);
-        vector<double> c_next(hidden_size);
+    std::vector<double> forward(const std::vector<double>& x) {
+        std::vector<double> f_gate(hidden_size);
+        std::vector<double> o_gate(hidden_size);
+        std::vector<double> i_gate(hidden_size);
+        std::vector<double> c_tilde(hidden_size);
+        std::vector<double> h_next(hidden_size);
+        std::vector<double> c_next(hidden_size);
 
-        // Forget gate: f_t = σ(Wf * x + Uf * h_prev + bf)
+        
+        // Forget gate
         for (int i = 0; i < hidden_size; ++i) {
             double sum = 0.0;
-            for (int j = 0; j < input_size; ++j) sum += Wf[i][j] * x[j];
-            for (int j = 0; j < hidden_size; ++j) sum += Uf[i][j] * h_prev[j];
-            f_gate[i] = sigmoid(sum + bf[i]);
+            for (int j = 0; j < input_size; ++j) sum += weights.Wf[i][j] * x[j];
+            for (int j = 0; j < hidden_size; ++j) sum += weights.Uf[i][j] * h_prev[j];
+            f_gate[i] = sigmoid(sum + weights.bf[i]);
         }
 
-        // Input gate: i_t = σ(Wi * x + Ui * h_prev + bi)
+        // Input gate
         for (int i = 0; i < hidden_size; ++i) {
             double sum = 0.0;
-            for (int j = 0; j < input_size; ++j) sum += Wi[i][j] * x[j];
-            for (int j = 0; j < hidden_size; ++j) sum += Ui[i][j] * h_prev[j];
-            i_gate[i] = sigmoid(sum + bi[i]);
+            for (int j = 0; j < input_size; ++j) sum += weights.Wi[i][j] * x[j];
+            for (int j = 0; j < hidden_size; ++j) sum += weights.Ui[i][j] * h_prev[j];
+            i_gate[i] = sigmoid(sum + weights.bi[i]);
         }
 
-        // Candidate cell state: c_tilde = tanh(Wc * x + Uc * h_prev + bc)
+        // Candidate cell state
         for (int i = 0; i < hidden_size; ++i) {
             double sum = 0.0;
-            for (int j = 0; j < input_size; ++j) sum += Wc[i][j] * x[j];
-            for (int j = 0; j < hidden_size; ++j) sum += Uc[i][j] * h_prev[j];
-            c_tilde[i] = tanh(sum + bc[i]);
+            for (int j = 0; j < input_size; ++j) sum += weights.Wc[i][j] * x[j];
+            for (int j = 0; j < hidden_size; ++j) sum += weights.Uc[i][j] * h_prev[j];
+            c_tilde[i] = tanh_act(sum + weights.bc[i]);
         }
 
-        // Cell state update: c_next = f_t ⊙ c_prev + i_t ⊙ c_tilde
+        // Cell state update
         for (int i = 0; i < hidden_size; ++i) {
             c_next[i] = f_gate[i] * c_prev[i] + i_gate[i] * c_tilde[i];
         }
 
-        // Output gate: o_t = σ(Wo * x + Uo * h_prev + bo)
+        // Output gate
         for (int i = 0; i < hidden_size; ++i) {
             double sum = 0.0;
-            for (int j = 0; j < input_size; ++j) sum += Wo[i][j] * x[j];
-            for (int j = 0; j < hidden_size; ++j) sum += Uo[i][j] * h_prev[j];
-            o_gate[i] = sigmoid(sum + bo[i]);
+            for (int j = 0; j < input_size; ++j) sum += weights.Wo[i][j] * x[j];
+            for (int j = 0; j < hidden_size; ++j) sum += weights.Uo[i][j] * h_prev[j];
+            o_gate[i] = sigmoid(sum + weights.bo[i]);
         } 
 
-        // Hidden state: h_next = o_t ⊙ tanh(c_next)
+        // Hidden state
         for (int i = 0; i < hidden_size; ++i) {
-            h_next[i] = o_gate[i] * tanh(c_next[i]);
+            h_next[i] = o_gate[i] * tanh_act(c_next[i]);
         }
 
-        // Mettez à jour les états précédents
         c_prev = c_next;
         h_prev = h_next;
 
@@ -172,101 +154,82 @@ public:
     }
 
     void mutate(double mutateRate) {
-        auto mutate_vector = [&](vector<double>& vec) {
+        
+        std::default_random_engine generator;
+        std::uniform_real_distribution<double> prob_dist(0.0, 1.0);
+        std::uniform_real_distribution<double> mutation_dist(-0.05, 0.05);
+
+        auto mutate_vector = [&](std::vector<double>& vec) {
             for (double& value : vec) {
-                if (static_cast<double>(rand()) / RAND_MAX < mutateRate) {
-                    value += static_cast<double>(rand()) / RAND_MAX * 0.1 - 0.05;
+                if (prob_dist(generator) < mutateRate) {
+                    value += mutation_dist(generator);
                 }
             }
         };
 
-        auto mutate_matrix = [&](vector<vector<double>>& matrix) {
+        auto mutate_matrix = [&](std::vector<std::vector<double>>& matrix) {
             for (auto& row : matrix) {
                 mutate_vector(row);
             }
         };
-
-        mutate_matrix(Wf);
-        mutate_matrix(Wi);
-        mutate_matrix(Wc);
-        mutate_matrix(Wo);
-        mutate_matrix(Uf);
-        mutate_matrix(Ui);
-        mutate_matrix(Uc);
-        mutate_matrix(Uo);
         
-        mutate_vector(bf);
-        mutate_vector(bi);
-        mutate_vector(bc);
-        mutate_vector(bo);
+        
+        mutate_matrix(weights.Wf);
+        mutate_matrix(weights.Wi);
+        mutate_matrix(weights.Wc);
+        mutate_matrix(weights.Wo);
+        mutate_matrix(weights.Uf);
+        mutate_matrix(weights.Ui);
+        mutate_matrix(weights.Uc);
+        mutate_matrix(weights.Uo);
+        
+        mutate_vector(weights.bf);
+        mutate_vector(weights.bi);
+        mutate_vector(weights.bc);
+        mutate_vector(weights.bo);
     }
 
     LSTM breed(const LSTM& parent) const {
-        LSTM child(input_size, hidden_size);
+        LSTM child(this->input_size, this->hidden_size);
+        LSTM_weight child_weights;
         
-        auto breed_vector = [&](vector<double>& child_vector, const vector<double>& this_vector, const vector<double>& parent_vector) {
-            for (int i = 0; i < child_vector.size(); ++i) {
-                child_vector[i] = (this_vector[i] + parent_vector[i]) / 2;
+        const LSTM_weight& parent_weights = parent.getWeights(); // Récupère les poids du parent
+
+        auto breed_vector = [&](const std::vector<double>& v1, const std::vector<double>& v2) {
+            std::vector<double> result(v1.size());
+            for (size_t i = 0; i < v1.size(); ++i) {
+                result[i] = (v1[i] + v2[i]) / 2.0;
             }
+            return result;
         };
         
-        auto breed_matrix = [&](vector<vector<double>>& child_matrix, const vector<vector<double>>& this_matrix, const vector<vector<double>>& parent_matrix) {
-            for (int i = 0; i < child_matrix.size(); ++i) {
-                breed_vector(child_matrix[i],this_matrix[i],parent_matrix[i]);
+        auto breed_matrix = [&](const std::vector<std::vector<double>>& m1, const std::vector<std::vector<double>>& m2) {
+            std::vector<std::vector<double>> result(m1.size());
+            for (size_t i = 0; i < m1.size(); ++i) {
+                result[i] = breed_vector(m1[i], m2[i]);
             }
+            return result;
         };
 
-        breed_matrix(child.Wf, this->Wf, parent.Wf);
-        breed_matrix(child.Wi, this->Wi, parent.Wi);
-        breed_matrix(child.Wc, this->Wc, parent.Wc);
-        breed_matrix(child.Wo, this->Wo, parent.Wo);
-        breed_matrix(child.Uf, this->Uf, parent.Uf);
-        breed_matrix(child.Ui, this->Ui, parent.Ui);
-        breed_matrix(child.Uc, this->Uc, parent.Uc);
-        breed_matrix(child.Uo, this->Uo, parent.Uo);
+        
+        child_weights.Wf = breed_matrix(this->weights.Wf, parent_weights.Wf);
+        child_weights.Wi = breed_matrix(this->weights.Wi, parent_weights.Wi);
+        child_weights.Wc = breed_matrix(this->weights.Wc, parent_weights.Wc);
+        child_weights.Wo = breed_matrix(this->weights.Wo, parent_weights.Wo);
+        
+        child_weights.Uf = breed_matrix(this->weights.Uf, parent_weights.Uf);
+        child_weights.Ui = breed_matrix(this->weights.Ui, parent_weights.Ui);
+        child_weights.Uc = breed_matrix(this->weights.Uc, parent_weights.Uc);
+        child_weights.Uo = breed_matrix(this->weights.Uo, parent_weights.Uo);
 
-        breed_vector(child.bf, this->bf, parent.bf);
-        breed_vector(child.bi, this->bi, parent.bi);
-        breed_vector(child.bc, this->bc, parent.bc);
-        breed_vector(child.bo, this->bo, parent.bo);
+        child_weights.bf = breed_vector(this->weights.bf, parent_weights.bf);
+        child_weights.bi = breed_vector(this->weights.bi, parent_weights.bi);
+        child_weights.bc = breed_vector(this->weights.bc, parent_weights.bc);
+        child_weights.bo = breed_vector(this->weights.bo, parent_weights.bo);
+
+
+        child.setWeights(child_weights); // On assigne les nouveaux poids à l'enfant
 
         return child;
     }
-
-    std::vector<double> getHiddenState() const { return h_prev; }
-    void setHiddenState(const std::vector<double>& h) { h_prev = h; }
-
-// Inutile là pour l'évolution (algorithme génétique)
-/*
-    void backward(const vector<double>& x, const vector<double>& h_next_grad) {
-        // Calculer les gradients pour :
-        // - Paramètres (W, U, b)
-        // - États précédents (h_prev, c_prev)
-        // - Entrée x
-
-        
-    }
-
-    void update_parameters(double learning_rate) {
-        // Appliquer la descente de gradient :
-        // W = W - learning_rate * dW
-        // (Idem pour U et b)
-        Wc = Wc - learning_rate * dW;
-        Wi = Wi - learning_rate * dW;
-        Wf = Wf - learning_rate * dw; 
-        Wo = Wo - learning_rate * dW;
-
-        Uc = Uc - learning_rate * dW;
-        Uf= Uf - learning_rate * dW;
-        Ui = Ui - learning_rate * dW;
-        Uo = Uo - learning_rate * dW;
-
-        bf = bf - learning_rate * dW;
-        bi = bi - learning_rate * dW;
-        bc = bc - learning_rate * dW;
-        bo = bo - learning_rate * dW;
-
-    }
-*/
-    
 };

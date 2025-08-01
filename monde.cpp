@@ -11,55 +11,10 @@ enum CellType {
     HOUSE,
     ROAD,
     WATER,
-    FOREST
-}
-
-class Agent_graphique {
-    public:
-    int x, y; //position
-    char symbol; 
-    int id;
-
-    Agent(int id, int startX, int StartY, char sym)
-        :id(id), x(StartX), y(StartY), symbol(sym) {}
+    FOREST,
     
-    void move(const Map& map) { 
-        int newX = x, newY = y;
-        
-        switch(direction) {
-            case 0: newY--; break; // Haut
-            case 1: newX++; break; // Droite
-            case 2: newY++; break; // Bas
-            case 3: newX--; break; // Gauche
-        }
-        
-        // Vérifier si le déplacement est valide
-        if (map.isValidPosition(newX, newY) && map.getCell(newX, newY) != WATER) {
-            x = newX;
-            y = newY;
-        }
-    }
-
-    //getters 
-    int getPosition() {
-        return x, y;
-    }
-
-    char getSymbol() {
-        return symbol;
-    }
-    
-    int getId() {
-        return id;
-    }
-
-    //setters
-    int setPositon(int newX, int newY) {
-        x = newX;
-        y = newY;
-
-    }
 };
+
 
 class Map {
     private:
@@ -69,13 +24,13 @@ class Map {
 
     public:
 
-    Map(int w, int h) : width(w), height(h) {
-        grid.resize(height, vector<CellType>(width, EMPTY));
+    Map(int w, int h) : with(w), height(h) {
+        grid.resize(height, vector<CellType>(with, EMPTY));
         srand(time(0)); // Initialiser le générateur aléatoire
     }
 
     bool isValidPosition(int x, int y) const {
-        return x >= 0 && x < width && y >= 0 && y < height;
+        return x >= 0 && x < with && y >= 0 && y < height;
     }
 
     CellType getCell(int x, int y) const {
@@ -93,7 +48,7 @@ class Map {
 
     void placeRandom(CellType type, int count) {
         while (count > 0) {
-            int x = rand() % width;
+            int x = rand() % with;
             int y = rand() % height;
             if (grid[y][x] == EMPTY) {
                 grid[y][x] = type;
@@ -102,7 +57,7 @@ class Map {
         }
     }
 
-    void addAgent(int x, int y, char sym) {
+    void addAgent(int x, int y, char sym) { // à refaire 
         if (isValidPosition(x, y)) {
             agents.emplace_back(agents.size(), x, y, sym);
         }
@@ -116,15 +71,15 @@ class Map {
 
     void display() {
         // Créer un buffer d'affichage
-        vector<vector<char>> displayGrid(height, vector<char>(width, '.'));
+        vector<vector<char>> displayGrid(height, vector<char>(with, '.'));
         
         // Remplir avec le terrain
         for (int y = 0; y < height; ++y) {
-            for (int x = 0; x < width; ++x) {
+            for (int x = 0; x < with; ++x) {
                 switch(grid[y][x]) {
                     case EMPTY: displayGrid[y][x] = '.'; break;
                     case HOUSE: displayGrid[y][x] = 'H'; break;
-                    case FARM: displayGrid[y][x] = 'F'; break;
+
                     case WATER: displayGrid[y][x] = 'W'; break;
                     case FOREST: displayGrid[y][x] = 'T'; break;
                     case ROAD: displayGrid[y][x] = 'R'; break;
@@ -140,10 +95,10 @@ class Map {
         }
         
         // Afficher
-        system("clear"); // Effacer la console (Linux/macOS)
+        system("clear"); 
         
         for (int y = 0; y < height; ++y) {
-            for (int x = 0; x < width; ++x) {
+            for (int x = 0; x < with; ++x) {
                 cout << displayGrid[y][x] << " ";
             }
             cout << endl;
@@ -151,8 +106,19 @@ class Map {
     }
 
     const vector<Agent>& getAgents() const { return agents; }
-    int getWidth() const { return width; }
+    int getWith() const { return with; }
     int getHeight() const { return height; }
+
+    bool Map::isPositionFree(int x, int y ) { 
+        if(!isValidPosition(x,y)) { return false;}
+
+        for(const auto&  agent : agents ) { 
+            if(agent.x == x and agent.y == y ) {
+                return false;
+            }
+        }
+        return getCell(x,y) != WATER;
+    }
 
 }
 
