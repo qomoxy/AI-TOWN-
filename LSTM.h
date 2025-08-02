@@ -6,10 +6,9 @@
 #include <algorithm>
 #include <tuple>
 
-
 using namespace std;
 
-// La structure pour contenir TOUS les poids du LSTM
+// La structure pour contenir tous les poids du LSTM
 struct LSTM_weight { 
     std::vector<std::vector<double>> Wf, Wi, Wc, Wo;
     std::vector<std::vector<double>> Uf, Ui, Uc, Uo;

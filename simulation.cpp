@@ -1,4 +1,3 @@
-// Fichier: simulation.cpp
 #include <iostream>
 #include <vector>
 #include "Agent.h"
