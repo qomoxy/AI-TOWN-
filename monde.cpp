@@ -1,9 +1,8 @@
-// Fichier: monde.cpp
 #include "monde.h"
-#include "Agent.h" // On a besoin de connaître l'Agent pour l'affichage
+#include "Agent.h" 
 #include <iostream>
-#include <cstdlib> // Pour rand()
-#include <ctime>   // Pour time()
+#include <cstdlib> 
+#include <ctime>  
 
 Map::Map(int w, int h) : width(w), height(h) {
     grid.resize(height, std::vector<CellType>(width, EMPTY));
@@ -22,7 +21,6 @@ CellType Map::getCell(int x, int y) const {
 }
 
 void Map::generateRandomWorld() {
-    // Exemple simple de génération
     for (int i = 0; i < (width * height) / 10; ++i) {
         grid[rand() % height][rand() % width] = FOREST;
         grid[rand() % height][rand() % width] = WATER;

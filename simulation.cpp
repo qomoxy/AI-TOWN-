@@ -2,7 +2,7 @@
 #include <vector>
 #include "Agent.h"
 #include "monde.h"
-#include <unistd.h> // Pour sleep()
+#include <unistd.h> 
 
 class Simulation {
 public:
@@ -17,7 +17,6 @@ public:
         map.generateRandomWorld();
 
         // Crée les agents initiaux
-        // Le vecteur de perception aura 2 (infos agent) + 9*9 (vision) * 2 (type+agent) = 164 entrées
         int input_size = 2 + 81 * 2;
         int hidden_size = 30; // Taille du "cerveau"
         for (int i = 0; i < num_agents; ++i) {
@@ -30,37 +29,79 @@ public:
     }
 
     void run() {
-        while (day < 100) { // La simulation tourne pour 100 jours
+        while (day < 100) {
             std::cout << "----------- JOUR " << day << " -----------" << std::endl;
             
-            // Boucle de tour pour chaque agent
+            
             for (auto& agent : agents) {
-                // 1. PERCEIVE
+                
                 std::vector<double> perception = agent.perceive(map, agents);
 
-                // 2. THINK
+                
                 std::vector<double> decision = agent.think(perception);
                 
-                // 3. ACT
+                
                 agent.act(decision, map);
             }
             
-            // Affiche l'état du monde
+            
             map.display(agents);
 
-            // Fais une pause pour qu'on puisse voir ce qui se passe
+            
             usleep(200000); // 0.2 secondes
 
+            evolvePopulation();
             day++;
-            // Ici, tu pourras ajouter la logique de reproduction / sélection
+            
         }
+
+        int fitness_agents[num_agents];
+
+        for(auto& agent : agents ) { 
+           fitness_agents[agent.config.id] = agent.getFitness();
+        }
+
+
     }
 };
 
-// Il faudra aussi ajouter les définitions des fonctions de Map dans un fichier monde.cpp
-// Et un main.cpp pour lancer la simulation.
-// int main() {
-//     Simulation sim(30, 20, 5);
-//     sim.run();
-//     return 0;
-// }
+void Simulation::evolvePopulation() {
+    if(agent.empty()) return;
+
+    std::sort(agent.begin(), agent.end(), [](const Agent& a, const Agent& b) { 
+        return a.getFitness() > b.getFitness();
+    });
+
+    std::vector<Agent> reproduction_pool;
+    int elite_count = agent.size / 8;
+    if(elite_count = 0) elite_count = 1;
+
+    for(int i =0; i < elite_count; ++i) { 
+        reproduction_pool.push_back(agent[i]);
+    };
+
+    std::vector<Agent> next_generation;
+    int current_pop_size = agents.size();
+    
+    while (next_generation.size() < current_pop_size) {
+        
+        const Agent& parent1 = reproduction_pool[rand() % elite_count];
+        const Agent& parent2 = reproduction_pool[rand() % elite_count];
+
+        
+        int startX = rand() % map.getWidth();
+        int startY = rand() % map.getHeight();
+        Agent child = parent1.breedWith(parent2, "Agent" + std::to_string(next_generation.size()), next_generation.size(), startX, startY);
+
+        
+        if ((rand() % 100) < 10) {
+            child.mutateBrain(0.05);
+        }
+        
+        next_generation.push_back(child);
+    }
+    
+    // Remplacer l'ancienne génération par la nouvelle
+    agents = next_generation;
+
+}

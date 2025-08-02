@@ -3,14 +3,12 @@
 #include "monde.h"
 #include <string>
 #include <vector>
-#include <utility> // Pour std::pair
+#include <utility> 
 
-class Agent {
-private:
+struct AgentConfig { 
     std::string name;
     unsigned int id;
-    LSTM brain;
-
+    
     // Stats
     double energie;
     double satisfaction;
@@ -18,16 +16,32 @@ private:
     // Position & Apparence
     int x, y;
     char symbol;
+    Direction direction;
+};
+
+class Agent {
+private:
+
+    LSTM brain;
+    
+    AgentConfig config;
+
+    void eat(int nutrition_score);
+    void _move(Map& map);
+    void interact(double item);
+
 
 public:
     // Constructeur 
     Agent(const std::string& name, unsigned int id, int startX, int startY, int input_size, int hidden_size);
 
     // Getters 
-    std::string getName() const { return name; }
-    std::pair<int, int> getPosition() const { return {x, y}; }
-    char getSymbol() const { return symbol; }
+    std::string getName() const { return config.name; }
+    std::pair<int, int> getPosition() const { return {config.x, config.y}; }
+    char getSymbol() const { return config.symbol; }
     const LSTM& getBrain() const { return brain; } // Pour le breeding
+    int getX() const { return config.x; }
+    int getY() const { return config.y; }
 
     // Logique de l'agent
     std::vector<double> perceive(const Map& map, const std::vector<Agent>& all_agents);
