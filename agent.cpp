@@ -45,6 +45,17 @@ std::vector<double> Agent::think(const std::vector<double>& perception_vector) {
 }
 // Divisé act en sous fonction privée 
 
+void Agent::_interact(Map& map) {
+    for(int i = -1; i <= 1; i++) {
+        for(int y = - 1; y <= 1; y++) { 
+            if(map.getCell(i,y) = BOOK) {
+                config.satisfaction = 2
+            }//Checker si il y a quelque chose avec quoi interagire si oui interagir sinon rien faire 
+        }
+    }
+    return;
+}
+
 void Agent::_move(Map& map) { 
     int move = rand() % 5;
     int newX = config.x, newY = config.y;

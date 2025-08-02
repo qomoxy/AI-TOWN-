@@ -4,8 +4,8 @@
 
 class Agent;
 
-enum CellType { EMPTY, HOUSE, ROAD, WATER, FOREST };
-enum Direction { UP, RIGHT, DOWN, LEFT };
+enum CellType { EMPTY, HOUSE, ROAD, WATER, FOREST, BOOK, APPLE};
+
 
 class Map {
     private : 

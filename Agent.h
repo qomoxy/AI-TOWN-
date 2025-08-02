@@ -26,9 +26,9 @@ private:
     
     AgentConfig config;
 
-    void eat(int nutrition_score);
+    void _eat(int nutrition_score);
     void _move(Map& map);
-    void interact(double item);
+    void _interact(Map& map);
 
 
 public:

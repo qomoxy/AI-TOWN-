@@ -39,6 +39,7 @@ void Map::display(const std::vector<Agent>& agents) {
                 case WATER:  displayGrid[y][x] = '~'; break;
                 case FOREST: displayGrid[y][x] = 'T'; break;
                 case ROAD:   displayGrid[y][x] = '#'; break;
+                case BOOK:   displayGrid[y][x] = 'B'; break;
             }
         }
     }
