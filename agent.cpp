@@ -1,21 +1,34 @@
 #include "Agent.h"
+#include <cmath>
 
 // Constructeur pour un nouvel agent
 Agent::Agent(const std::string& name, unsigned int id, int startX, int startY, int input_size, int hidden_size)
     : brain(input_size, hidden_size),
-      config{name, id, 100.0, 100.0, startX, startY, '@', UP} // Initialisation de la struct
+      config{name, id, 100.0, 100.0, startX, startY, '@'} // Initialisation de la struct
 {}
 
 
 // L'agent observe son environnement et le transforme en vecteur pour son cerveau
-std::vector<double> Agent::perceive(const Map& map, const std::vector<Agent>& all_agents) {
+std::vector<double> Agent::perceive(const Map& map, const std::vector<Agent>& all_agents, bool is_day) {
     std::vector<double> perception_vector;
     
     perception_vector.push_back(config.energie / 100.0);
     perception_vector.push_back(config.satisfaction / 100.0);
 
-    for (int i = -4; i <= 4; ++i) {
-        for (int j = -4; j <= 4; ++j) {
+    int vision_range = is_day ? 4 : 2;
+
+    if(last_known_food_pos.has_value()) {
+        int dx = last_known_food_pos->first - config.x;
+        int dy = last_known_food_pos->second - config.y;
+        perception_vector.push_back(std::sqrt(dx*dx + dy*dy) / 10.0); // Distance normalisée
+        perception_vector.push_back(std::atan2(dy, dx) / M_PI); // Angle normalisé (-1 à 1)
+    } else {
+        perception_vector.push_back(0.0); // Pas d'info
+        perception_vector.push_back(0.0); // Pas d'info
+    }
+
+    for (int i = -vision_range; i <= vision_range; ++i) {
+        for (int j = -vision_range; j <= vision_range; ++j) {
             int check_x = config.x + j;
             int check_y = config.y + i;
 
@@ -30,12 +43,17 @@ std::vector<double> Agent::perceive(const Map& map, const std::vector<Agent>& al
                 if (this->config.id == other_agent.config.id) continue; // Ne pas se voir soi-même
                 if (other_agent.getPosition().first == check_x && other_agent.getPosition().second == check_y) {
                     agent_found = true;
+                    int relation_score = 0;
+                    if (social_memory.count(other_agent.getId())) {
+                        relation_score = social_memory.at(other_agent.getId());
+                    }
+                    perception_vector.push_back(relation_score / 10.0);
                     break;
                 }
             }
-            perception_vector.push_back(agent_found ? 1.0 : 0.0);
         }
     }
+
     return perception_vector; 
 }
 
@@ -43,17 +61,33 @@ std::vector<double> Agent::perceive(const Map& map, const std::vector<Agent>& al
 std::vector<double> Agent::think(const std::vector<double>& perception_vector) {
     return brain.forward(perception_vector);
 }
-// Divisé act en sous fonction privée 
+// Divisé act en sous fonction privée *
+Agent* Agent::_findNearbyAgent(std::vector<Agent>& all_agents) {
+    for (auto& other_agent : all_agents) {
+        if (config.id == other_agent.config.id) continue;
+
+        int dist_x = abs(config.x - other_agent.getX());
+        int dist_y = abs(config.y - other_agent.getY());
+
+        if (dist_x <= 1 && dist_y <= 1) { 
+            return &other_agent; 
+        }
+    }
+    return nullptr; // Personne à proximité
+}
 
 void Agent::_interact(Map& map) {
     for(int i = -1; i <= 1; i++) {
-        for(int y = - 1; y <= 1; y++) { 
-            if(map.getCell(i,y) = BOOK) {
-                config.satisfaction = 2
+        for(int j = - 1; j <= 1; j++) { 
+            int check_x = config.x + i;
+            int check_y = config.y + j;
+            if(map.getCell(check_x,check_y) == CellType::BOOK && map.isValidPosition(check_x,check_y)) {
+                config.satisfaction += 2;
+                last_known_food_pos = {check_x,check_y};
+                return;
             }//Checker si il y a quelque chose avec quoi interagire si oui interagir sinon rien faire 
         }
     }
-    return;
 }
 
 void Agent::_move(Map& map) { 
@@ -64,15 +98,14 @@ void Agent::_move(Map& map) {
     else if (move == 2) newY++;
     else if (move == 3) newX--;
     
-    if (map.isValidPosition(newX, newY) && map.getCell(newX, newY) != WATER) {
+    if (map.isValidPosition(newX, newY) && map.getCell(newX, newY) != CellType::WATER) {
         config.x = newX;
         config.y = newY;
     }
 }
 
-// L'agent exécute une action en fonction de la décision de son cerveau
-void Agent::act(const std::vector<double>& decision_vector, const Map& map) {
-    // La sortie du LSTM est un vecteur de probabilités. Trouvons la meilleure action.
+// ACTION PRINCIPALE
+void Agent::act(const std::vector<double>& decision_vector, Map& map, std::vector<Agent>& all_agents, bool is_day) {
     int best_action_index = 0;
     for (size_t i = 1; i < decision_vector.size(); ++i) {
         if (decision_vector[i] > decision_vector[best_action_index]) {
@@ -80,16 +113,61 @@ void Agent::act(const std::vector<double>& decision_vector, const Map& map) {
         }
     }
 
-    _move(map);
+    // Connecter la sortie du cerveau aux actions !
+    switch(best_action_index) {
+        case 0: // Manger
+            if (map.getCell(config.x, config.y) == CellType::APPLE || map.getCell(config.x,config.y) == CellType::CHAMPIGNON_LUMINEUX) {
+                config.energie = std::min(100.0, config.energie + 20);
+                last_known_food_pos = {config.x, config.y};
+                map.setCell(config.x, config.y, CellType::EMPTY);
+            }
+            break;
+        case 1: // Parler
+            { // On utilise des accolades pour créer une portée locale pour 'target'
+                Agent* target = _findNearbyAgent(all_agents);
+                if (target) {
+                    this->config.satisfaction += 5;
+                    // FIX: Syntaxe de find et faute de frappe
+                    if(social_memory.find(target->getId()) == social_memory.end()) {
+                        social_memory[target->getId()] = (rand() % 11) - 5;
+                    } else {
+                        social_memory[target->getId()] += (rand() % 8) - 2;
+                    }
+                    if (this->last_known_food_pos.has_value()) {
+                        target->receiveFoodInfo(this->last_known_food_pos.value());
+                    }
+                }
+            } // Fin du bloc de 'target'
+            break;
+        case 2: // Dormir
+            if (!is_day) {
+                config.energie = std::min(100.0, config.energie + 3);
+            }
+            break;
+        case 3: // Interagir avec objet (livre)
+            _interact(map);
+            break;
+        default: // Bouger
+            _move(map);
+            break;
+    }
 
-    config.energie -= 0.5; // Chaque action coûte de l'énergie
+    // Coût de la vie
+    if(is_day) {
+        config.energie -= 0.5;
+    } else { 
+        config.energie -= 1;
+    }
 }
 
 double Agent::getFitness() const {
     
-    return config.energie * 0.2 + config.satisfaction 0.5;
+    return config.energie * 0.2 + config.satisfaction * 0.5;
 }
 
+void Agent::receiveFoodInfo(std::pair<int, int> pos) {
+    last_known_food_pos = pos;
+}
 // Fonctions pour l'évolution
 void Agent::mutateBrain(double mutationRate) {
     brain.mutate(mutationRate);

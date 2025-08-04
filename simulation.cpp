@@ -1,83 +1,31 @@
+#include "simulation.h" 
 #include <iostream>
 #include <vector>
-#include "Agent.h"
-#include "monde.h"
+#include <algorithm> // Pour std::sort
 #include <unistd.h> 
 
-class Simulation {
-public:
-    Map map;
-    std::vector<Agent> agents;
-    int day;
 
-    Simulation(int map_width, int map_height, int num_agents) 
-        : map(map_width, map_height), day(0) {
-        
-        // Crée un monde avec des obstacles
-        map.generateRandomWorld();
-
-        // Crée les agents initiaux
-        int input_size = 2 + 81 * 2;
-        int hidden_size = 30; // Taille du "cerveau"
-        for (int i = 0; i < num_agents; ++i) {
-            agents.emplace_back("Agent" + std::to_string(i), i, 5 + i, 5, input_size, hidden_size);
-        }
+Simulation::Simulation(int map_width, int map_height, int num_agents) 
+    : map(map_width, map_height), day(0) {
+    map.generateRandomWorld();
+    int input_size = 2 + 81 * 2;
+    int hidden_size = 30;
+    for (int i = 0; i < num_agents; ++i) {
+        agents.emplace_back("Agent" + std::to_string(i), i, 5 + i, 5, input_size, hidden_size);
     }
-
-    int getDay() {
-        return day;
-    }
-
-    void run() {
-        while (day < 100) {
-            std::cout << "----------- JOUR " << day << " -----------" << std::endl;
-            
-            
-            for (auto& agent : agents) {
-                
-                std::vector<double> perception = agent.perceive(map, agents);
-
-                
-                std::vector<double> decision = agent.think(perception);
-                
-                
-                agent.act(decision, map);
-            }
-            
-            
-            map.display(agents);
-
-            
-            usleep(200000); // 0.2 secondes
-
-            evolvePopulation();
-            day++;
-            
-        }
-
-        int fitness_agents[num_agents];
-
-        for(auto& agent : agents ) { 
-           fitness_agents[agent.config.id] = agent.getFitness();
-        }
-
-
-    }
-};
+}
 
 void Simulation::evolvePopulation() {
-    if(agent.empty()) return;
-
-    std::sort(agent.begin(), agent.end(), [](const Agent& a, const Agent& b) { 
+    if (agents.empty()) return;
+    std::sort(agents.begin(), agents.end(), [](const Agent& a, const Agent& b) {
         return a.getFitness() > b.getFitness();
     });
-
     std::vector<Agent> reproduction_pool;
-    int elite_count = agent.size / 8;
-    if(elite_count = 0) elite_count = 1;
+    int elite_count = agents.size() / 8;
+    if(elite_count == 0) elite_count = 1;
 
     for(int i =0; i < elite_count; ++i) { 
-        reproduction_pool.push_back(agent[i]);
+        reproduction_pool.push_back(agents[i]);
     };
 
     std::vector<Agent> next_generation;
@@ -103,5 +51,30 @@ void Simulation::evolvePopulation() {
     
     // Remplacer l'ancienne génération par la nouvelle
     agents = next_generation;
+}
 
+void Simulation::run() {
+    while (day < 100) {
+        std::cout << "----------- JOUR " << day << " -----------" << std::endl;
+
+        time_of_day++;
+        if (time_of_day >= DAY_DURATION * 2) {
+            time_of_day = 0;
+            day++;
+        }
+        is_day = (time_of_day < DAY_DURATION);
+        
+        for (auto& agent : agents) {
+            std::vector<double> perception = agent.perceive(map, agents, is_day);
+            std::vector<double> decision = agent.think(perception);
+            agent.act(decision, map, agents, is_day);
+        }
+        
+        map.updateWorld(is_day);
+        map.display(agents);
+        usleep(200000);
+
+        evolvePopulation();
+    }
+    
 }

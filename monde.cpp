@@ -5,7 +5,7 @@
 #include <ctime>  
 
 Map::Map(int w, int h) : width(w), height(h) {
-    grid.resize(height, std::vector<CellType>(width, EMPTY));
+    grid.resize(height, std::vector<CellType>(width, CellType::EMPTY));
     srand(time(0));
 }
 
@@ -17,13 +17,42 @@ CellType Map::getCell(int x, int y) const {
     if (isValidPosition(x, y)) {
         return grid[y][x];
     }
-    return WATER; // Retourner une case "infranchissable" si hors map
+    return CellType::WATER; // Retourner une case "infranchissable" si hors map
+}
+
+void Map::setCell(int x, int y, CellType type) {
+    if (isValidPosition(x, y)) {
+        grid[y][x] = type;
+    }
+}
+
+void Map::updateWorld(bool is_day) {
+    // Pour chaque case vide, il y a une petite chance qu'un buisson repousse
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            if (grid[y][x] == CellType::EMPTY && (rand() % 1000) < 1) { // 0.1% de chance par tour
+                grid[y][x] = CellType::APPLE;
+            } else if(grid[y][x] == CellType::FOREST && (rand() % 1000) < 1 && !is_day) {
+                grid[y][x] = CellType::CHAMPIGNON_LUMINEUX;
+            } else if (is_day && grid[y][x] == CellType::CHAMPIGNON_LUMINEUX) {
+                grid[y][x] = CellType::FOREST;
+            }
+
+        }
+    }
 }
 
 void Map::generateRandomWorld() {
     for (int i = 0; i < (width * height) / 10; ++i) {
-        grid[rand() % height][rand() % width] = FOREST;
-        grid[rand() % height][rand() % width] = WATER;
+        grid[rand() % height][rand() % width] = CellType::FOREST;
+        grid[rand() % height][rand() % width] = CellType::WATER;
+    }
+    for (int i = 0; i < (width * height) / 20; ++i) {
+        int x = rand() % width;
+        int y = rand() % height;
+        if (grid[y][x] == CellType::EMPTY) {
+            grid[y][x] = CellType::APPLE;
+        }
     }
 }
 
@@ -34,12 +63,12 @@ void Map::display(const std::vector<Agent>& agents) {
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
             switch (grid[y][x]) {
-                case EMPTY:  displayGrid[y][x] = '.'; break;
-                case HOUSE:  displayGrid[y][x] = 'H'; break;
-                case WATER:  displayGrid[y][x] = '~'; break;
-                case FOREST: displayGrid[y][x] = 'T'; break;
-                case ROAD:   displayGrid[y][x] = '#'; break;
-                case BOOK:   displayGrid[y][x] = 'B'; break;
+                case CellType::EMPTY:  displayGrid[y][x] = '.'; break;
+                case CellType::HOUSE:  displayGrid[y][x] = 'H'; break;
+                case CellType::WATER:  displayGrid[y][x] = '~'; break;
+                case CellType::FOREST: displayGrid[y][x] = 'T'; break;
+                case CellType::ROAD:   displayGrid[y][x] = '#'; break;
+                case CellType::BOOK:   displayGrid[y][x] = 'B'; break;
             }
         }
     }

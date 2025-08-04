@@ -1,12 +1,10 @@
-#pragma once 
+#pragma once
 #include <vector>
 #include <cmath>
 #include <iostream>
 #include <random>
 #include <algorithm>
 #include <tuple>
-
-using namespace std;
 
 // La structure pour contenir tous les poids du LSTM
 struct LSTM_weight { 
@@ -85,10 +83,28 @@ public:
         weights.bo = init_vector(hidden_size);
     }
 
-    
+    // getters (Arrah)
     LSTM_weight getWeights() const { 
         return this->weights;
     }
+
+    int getInputSize() const {
+        return input_size;
+    }
+
+    int getHiddenSize() const {
+        return hidden_size;
+    }
+
+    std::vector<double> getC_prev() const {
+        return c_prev;
+    }
+
+    std::vector<double> getH_prev() const {  
+        return h_prev;
+    }
+
+
     
     
     void setWeights(const LSTM_weight& new_weights) { 

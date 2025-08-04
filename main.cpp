@@ -1,4 +1,4 @@
-#include "simulation.cpp" 
+#include "simulation.h" 
 
 int main() {
     // Création de la simulation : map de 40x20 avec 10 agents
