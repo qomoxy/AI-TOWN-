@@ -17,6 +17,7 @@ struct AgentConfig {
     // Position & Apparence
     int x, y;
     char symbol;
+    
 };
 
 class Agent {
@@ -25,6 +26,7 @@ private:
     LSTM brain;
     
     AgentConfig config;
+    double fitness = 0.0;
 
     std::map<unsigned int, int> social_memory;
     std::optional<std::pair<int, int>> last_known_food_pos;
@@ -45,6 +47,10 @@ public:
     int getX() const { return config.x; }
     int getY() const { return config.y; }
     int getId() const {return config.id; }
+    double getEnergie() const {return config.energie; }
+    double getSatisfaction() const {return config.satisfaction; }
+    int getSocialMemorySize() const {return social_memory.size(); }
+    double getFitness() const { return config.energie *0.4 + config.satisfaction *0.6; }
 
 
     // Logique de l'agent
@@ -54,7 +60,6 @@ public:
     void receiveFoodInfo(std::pair<int, int> pos);
 
     // Évolution
-    double getFitness() const;
     void mutateBrain(double mutationRate);
     Agent breedWith(const Agent& partner, const std::string& childName, unsigned int childId, int startX, int startY) const;
 };

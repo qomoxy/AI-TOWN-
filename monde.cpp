@@ -69,6 +69,8 @@ void Map::display(const std::vector<Agent>& agents) {
                 case CellType::FOREST: displayGrid[y][x] = 'T'; break;
                 case CellType::ROAD:   displayGrid[y][x] = '#'; break;
                 case CellType::BOOK:   displayGrid[y][x] = 'B'; break;
+                case CellType::CHAMPIGNON_LUMINEUX: displayGrid[y][x] = 'C'; break;
+
             }
         }
     }

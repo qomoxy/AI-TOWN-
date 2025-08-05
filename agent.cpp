@@ -4,7 +4,7 @@
 // Constructeur pour un nouvel agent
 Agent::Agent(const std::string& name, unsigned int id, int startX, int startY, int input_size, int hidden_size)
     : brain(input_size, hidden_size),
-      config{name, id, 100.0, 100.0, startX, startY, '@'} // Initialisation de la struct
+      config{name, id, 50.0, 25.0, startX, startY, '@'} // Initialisation de la struct
 {}
 
 
@@ -126,7 +126,7 @@ void Agent::act(const std::vector<double>& decision_vector, Map& map, std::vecto
             { // On utilise des accolades pour créer une portée locale pour 'target'
                 Agent* target = _findNearbyAgent(all_agents);
                 if (target) {
-                    this->config.satisfaction += 5;
+                    this->config.satisfaction = std::min(100.0, config.satisfaction + 5);
                     // FIX: Syntaxe de find et faute de frappe
                     if(social_memory.find(target->getId()) == social_memory.end()) {
                         social_memory[target->getId()] = (rand() % 11) - 5;
@@ -138,10 +138,12 @@ void Agent::act(const std::vector<double>& decision_vector, Map& map, std::vecto
                     }
                 }
             } // Fin du bloc de 'target'
+            config.satisfaction = std::min(100.0, config.satisfaction + 20);
+            config.energie = std::max(0.0, config.energie - 1.0);
             break;
         case 2: // Dormir
             if (!is_day) {
-                config.energie = std::min(100.0, config.energie + 3);
+                config.energie = std::min(100.0, config.energie + 4);
             }
             break;
         case 3: // Interagir avec objet (livre)
@@ -154,15 +156,10 @@ void Agent::act(const std::vector<double>& decision_vector, Map& map, std::vecto
 
     // Coût de la vie
     if(is_day) {
-        config.energie -= 0.5;
+        config.energie = std::max(0.0, config.energie - 1.5);
     } else { 
-        config.energie -= 1;
+        config.energie = std::max(0.0, config.energie - 2.5);
     }
-}
-
-double Agent::getFitness() const {
-    
-    return config.energie * 0.2 + config.satisfaction * 0.5;
 }
 
 void Agent::receiveFoodInfo(std::pair<int, int> pos) {
