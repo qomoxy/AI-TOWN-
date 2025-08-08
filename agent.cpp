@@ -90,8 +90,9 @@ void Agent::_interact(Map& map) {
     }
 }
 
-void Agent::_move(Map& map) { 
-    int move = rand() % 5;
+void Agent::_move(Map& map, std::mt19937& rng) {
+    std::uniform_int_distribution<int> distrib(0, 4);
+    int move = distrib(rng);
     int newX = config.x, newY = config.y;
     if (move == 0) newY--;
     else if (move == 1) newX++;
@@ -105,7 +106,7 @@ void Agent::_move(Map& map) {
 }
 
 // ACTION PRINCIPALE
-void Agent::act(const std::vector<double>& decision_vector, Map& map, std::vector<Agent>& all_agents, bool is_day) {
+void Agent::act(const std::vector<double>& decision_vector, Map& map, std::vector<Agent>& all_agents, bool is_day, std::mt19937& rng) {
     int best_action_index = 0;
     for (size_t i = 1; i < decision_vector.size(); ++i) {
         if (decision_vector[i] > decision_vector[best_action_index]) {
@@ -150,7 +151,7 @@ void Agent::act(const std::vector<double>& decision_vector, Map& map, std::vecto
             _interact(map);
             break;
         default: // Bouger
-            _move(map);
+            _move(map, rng);
             break;
     }
 

@@ -36,6 +36,8 @@ private:
     }
 
 public:
+      std::default_random_engine generator;
+      
     LSTM(int input_size, int hidden_size) 
         : input_size(input_size), hidden_size(hidden_size) {
             h_prev = std::vector<double>(hidden_size, 0.0);
@@ -45,8 +47,7 @@ public:
 
     void initialize_weights() {
         // Initialisation des poids directement dans le membre 'weights'
-        std::default_random_engine generator;
-        std::normal_distribution<double> distribution(-1.0, 1.0); // Préciser que ce sont des doubles
+        std::normal_distribution<double> distribution(0.0, sqrt(1/input_size)); // Préciser que ce sont des doubles
 
         auto init_matrix = [&](int rows, int cols) {
             std::vector<std::vector<double>> matrix(rows, std::vector<double>(cols));
@@ -170,7 +171,7 @@ public:
 
     void mutate(double mutateRate) {
         
-        std::default_random_engine generator;
+        
         std::uniform_real_distribution<double> prob_dist(0.0, 1.0);
         std::uniform_real_distribution<double> mutation_dist(-0.05, 0.05);
 
