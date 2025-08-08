@@ -3,6 +3,7 @@
 #include "monde.h"
 #include <fstream> 
 #include <vector>
+#include <random>
 
 class Simulation {
 public:
@@ -16,7 +17,9 @@ public:
 
     Simulation(int map_width, int map_height, int num_agents);
     void run();
-
+    void fast_run();
+    
+    std::mt19937 rng;
 private:
     void evolvePopulation();
 

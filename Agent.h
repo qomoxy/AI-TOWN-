@@ -5,6 +5,7 @@
 #include <vector>
 #include <utility> 
 #include <optional>
+#include <fstream>
 
 struct AgentConfig { 
     std::string name;
@@ -31,7 +32,7 @@ private:
     std::map<unsigned int, int> social_memory;
     std::optional<std::pair<int, int>> last_known_food_pos;
     void _eat(int nutrition_score);
-    void _move(Map& map);
+    void _move(Map& map, std::mt19937& rng);
     void _interact(Map& map);
     Agent* _findNearbyAgent(std::vector<Agent>& all_agents);
 
@@ -50,14 +51,16 @@ public:
     double getEnergie() const {return config.energie; }
     double getSatisfaction() const {return config.satisfaction; }
     int getSocialMemorySize() const {return social_memory.size(); }
+    void setBrain(const LSTM& new_brain) { this->brain = new_brain; }
     double getFitness() const { return config.energie *0.4 + config.satisfaction *0.6; }
 
 
     // Logique de l'agent
     std::vector<double> perceive(const Map& map, const std::vector<Agent>& all_agents, bool is_day);
     std::vector<double> think(const std::vector<double>& perception_vector);
-    void act(const std::vector<double>& decision_vector, Map& map, std::vector<Agent>& all_agents, bool is_day); 
+    void act(const std::vector<double>& decision_vector, Map& map, std::vector<Agent>& all_agents, bool is_day, std::mt19937& rng); 
     void receiveFoodInfo(std::pair<int, int> pos);
+    void logSocialMemory(int current_day, std::ofstream& logfile) const;
 
     // Évolution
     void mutateBrain(double mutationRate);
