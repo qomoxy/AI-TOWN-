@@ -6,7 +6,7 @@
 
 
 Simulation::Simulation(int map_width, int map_height, int num_agents) 
-    : map(map_width, map_height), day(0) {
+    : map(map_width, map_height), day(0), rng(std::random_device{}()) {
     map.generateRandomWorld();
     int input_size = 52;
     int hidden_size = 8;
@@ -144,7 +144,7 @@ void Simulation::evolvePopulation() {
 }
 
 void Simulation::fast_run() {
-    while (day < 50) {
+    while (day < 50000) {
 
         for (auto& agent : agents) {
             std::vector<double> perception = agent.perceive(map, agents, is_day);

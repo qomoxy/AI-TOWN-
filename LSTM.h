@@ -35,11 +35,12 @@ private:
         return std::tanh(x);
     }
 
+    std::mt19937 generator;
+
 public:
-      std::default_random_engine generator;
       
     LSTM(int input_size, int hidden_size) 
-        : input_size(input_size), hidden_size(hidden_size) {
+        : input_size(input_size), hidden_size(hidden_size), generator(std::random_device{}()) {
             h_prev = std::vector<double>(hidden_size, 0.0);
             c_prev = std::vector<double>(hidden_size, 0.0);
             initialize_weights();
@@ -47,7 +48,7 @@ public:
 
     void initialize_weights() {
         // Initialisation des poids directement dans le membre 'weights'
-        std::normal_distribution<double> distribution(0.0, sqrt(1/input_size)); // Préciser que ce sont des doubles
+        std::normal_distribution<double> distribution(0.0, std::sqrt(1.0/input_size)); // Préciser que ce sont des doubles
 
         auto init_matrix = [&](int rows, int cols) {
             std::vector<std::vector<double>> matrix(rows, std::vector<double>(cols));
