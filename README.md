@@ -142,6 +142,7 @@ Voici la structure des fichiers sources principaux
 - **monde.h / monde.cpp** : Gestion de l’environnement virtuel.
 - **simulation.h / simulation.cpp** : Logique de la simulation.
 
+
 ---
 
 > Pour toute suggestion ou question, n’hésitez pas à ouvrir une issue !
