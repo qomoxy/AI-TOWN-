@@ -20,8 +20,8 @@ std::vector<double> Agent::perceive(const Map& map, const std::vector<Agent>& al
     if(last_known_food_pos.has_value()) {
         int dx = last_known_food_pos->first - config.x;
         int dy = last_known_food_pos->second - config.y;
-        perception_vector.push_back(std::sqrt(dx*dx + dy*dy) / 10.0); // Distance normalisée
-        perception_vector.push_back(std::atan2(dy, dx) / M_PI); // Angle normalisé (-1 à 1)
+        perception_vector.push_back(std::sqrt(dx*dx + dy*dy) / 10.0); 
+        perception_vector.push_back(std::atan2(dy, dx) / M_PI); 
     } else {
         perception_vector.push_back(0.0); // Pas d'info
         perception_vector.push_back(0.0); // Pas d'info
@@ -61,7 +61,7 @@ std::vector<double> Agent::perceive(const Map& map, const std::vector<Agent>& al
 std::vector<double> Agent::think(const std::vector<double>& perception_vector) {
     return brain.forward(perception_vector);
 }
-// Divisé act en sous fonction privée *
+// Divisé act en sous fonction privée
 Agent* Agent::_findNearbyAgent(std::vector<Agent>& all_agents) {
     for (auto& other_agent : all_agents) {
         if (config.id == other_agent.config.id) continue;
@@ -75,7 +75,7 @@ Agent* Agent::_findNearbyAgent(std::vector<Agent>& all_agents) {
     }
     return nullptr; // Personne à proximité
 }
-
+// intéraction entre deux agents distinct 
 void Agent::_interact(Map& map) {
     for(int i = -1; i <= 1; i++) {
         for(int j = - 1; j <= 1; j++) { 
@@ -89,7 +89,7 @@ void Agent::_interact(Map& map) {
         }
     }
 }
-
+// L'agent cherche à se déplacer sur une case valide dans son rayon d'action
 void Agent::_move(Map& map, std::mt19937& rng) {
     std::uniform_int_distribution<int> distrib(0, 4);
     int move = distrib(rng);
@@ -163,6 +163,7 @@ void Agent::act(const std::vector<double>& decision_vector, Map& map, std::vecto
     }
 }
 
+// change les coordonnées de la dernière denré alimentaire trouvé
 void Agent::receiveFoodInfo(std::pair<int, int> pos) {
     last_known_food_pos = pos;
 }
@@ -171,6 +172,7 @@ void Agent::mutateBrain(double mutationRate) {
     brain.mutate(mutationRate);
 }
 
+// création de l'enfant à partir des parents et autres infos
 Agent Agent::breedWith(const Agent& partner, const std::string& childName, unsigned int childId, int startX, int startY) const {
     Agent child(childName, childId, startX, startY, brain.getInputSize(), brain.getHiddenSize());
     LSTM childBrain = this->brain.breed(partner.getBrain());
