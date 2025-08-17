@@ -23,7 +23,7 @@
     <li><a href="#lstm">LSTM</a></li>
     <li><a href="#implémentation">Implémentation</a></li>
     <li><a href="#fitness">Fitness</a></li>
-    <li><a href="#algorithme-parental">Algorithme parental</a></li>
+    <li><a href="#cycle-d'Évolution-et-sélection">Cycle d'Évolution et Sélection</a></li>
     <li><a href="#installation">Installation</a></li>
     <li><a href="#documentation">Documentation</a></li>
   </ol>
@@ -35,17 +35,17 @@ Dans un monde où le numérique occupe une place centrale, l’intelligence arti
 
 ## Objectifs
 
-- Concevoir un environnement virtuel où des agents évoluent librement.
-- Développer des agents intelligents capables d’interactions complexes entre eux et avec leur environnement.
-- Définir une fonction de calcul de fitness pertinente pour évaluer la performance des agents.
-- Étudier l’évolution des agents à travers des mesures fiables et reproductibles.
+- **Concevoir un environnement virtuel** où des agents évoluent librement.
+- **Développer des agents intelligents** capables d’interactions complexes entre eux et avec leur environnement.
+- **Définir une fonction de fitness** pertinente pour évaluer la performance des agents.
+- **Étudier l’évolution des agents** à travers des mesures fiables et reproductibles.
 
 ## Choix du modèle
 
 ### Contraintes du projet :
-- Réaliser l’ensemble du projet nous-mêmes.
-- Utiliser uniquement un CPU (sans NPU ou GPU).
-- Finaliser le projet en moins d’un an.
+- **Autonomie** : Réaliser l’ensemble du projet nous-mêmes.
+- **Ressources** : Utiliser uniquement un CPU (sans NPU ou GPU).
+- **Temporalité** : Finaliser le projet en moins d’une année scolaire.
 
 ### Besoins identifiés :
 - Des agents capables de s’adapter, d’interagir et d’évoluer en société.
@@ -84,32 +84,44 @@ La formule utilisée est :
 <br>
 où w₁ = 0.4 et w₂ = 0.6.
 
-## Algorithme parental
+## Cycle d'Évolution et Sélection
 
-Tous les 5 jours simulés, l’évolution de la population a lieu pour faire apparaître une nouvelle génération qui apprend des précédentes, selon le schéma suivant :
-- 10% des meilleurs agents sont conservés.
-- 5% des agents sont sélectionnés aléatoirement.
-- Le reste de la population est renouvelé par mutation et reproduction.
+Pour simuler une évolution darwinienne, un cycle de sélection a lieu tous les 5 jours (temps simulé) pour créer une nouvelle génération :
+- **Élitisme (10%)** : Les 10% des agents ayant le meilleur score de fitness sont conservés tels quels pour la génération suivante.
+- **Aléatoire (5%)** : 5% des agents sont sélectionnés au hasard pour préserver la diversité génétique.
+- **Renouvellement (85%)** : Le reste de la population est renouvelé par reproduction et mutation des agents sélectionnés.
 
-Ce mécanisme permet de garantir diversité et amélioration progressive des agents.
+Ce mécanisme permet de garantir à la fois une amélioration progressive des performances et une diversité suffisante pour éviter les optima locaux.
 
-## Installation
+## Pour commencer
 
-1. Forkez et clonez ce dépôt :
+### Prérequis
+
+- Un compilateur C++ supportant la norme C++17 (ex: g++, clang++) :
+  ```shell
+  # Sur Debian/Ubuntu
+  sudo apt-get install build-essential
+  ```
+
+### Installation
+
+1. Clonez ce dépôt sur votre machine locale :
     ```shell
     git clone https://github.com/qomoxy/AI-TOWN-
     cd AI-TOWN-
     ```
 
-2. Compilation et exécution :
+2. Compilez le projet et lancez l'exécutable :
     ```shell
-    g++ -std=c++17 -o ai-town main.cpp
+    g++ -std=c++17 -o ai-town main.cpp agent.cpp monde.cpp simulation.cpp
     ./ai-town
     ```
 
 ## Documentation
 
 ### Structure du projet
+
+Voici la structure des fichiers sources principaux
 
 ```
   .
