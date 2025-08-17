@@ -53,11 +53,11 @@ Dans un monde où le numérique occupe une place centrale, l’intelligence arti
 - Un système permettant l’évolution et l’acclimatation des agents à leur environnement.
 - Un environnement apte à accueillir et faire évoluer cette population d’agents.
 
-Pour permettre à nos agents de simuler des comportements proches de l’humain, nous avons choisi d’utiliser des réseaux de neurones récurrents, et plus précisément les LSTM (Long Short-Term Memory), afin de gérer la mémoire et le contexte temporel.
+Pour permettre à nos agents de simuler des comportements proches de l’humain, nous avons choisi d’utiliser des **réseaux de neurones récurrents**, et plus précisément les **LSTM** (Long Short-Term Memory), afin de gérer la mémoire et le contexte temporel.
 
 ## LSTM
 
-Les LSTM, introduits par Hochreiter & Schmidhuber et popularisés par Christopher Olah, sont des réseaux de neurones récurrents dotés de plusieurs portes internes :
+Les LSTM, introduits par **Hochreiter & Schmidhuber** et popularisés par **Christopher Olah**, sont des réseaux de neurones récurrents dotés de plusieurs portes internes :
 - **Porte d’oubli** : décide quelles informations supprimer de la mémoire.
 - **Porte d’entrée** : sélectionne les nouvelles informations à mémoriser.
 - **Porte de sortie** : détermine l’état de sortie du neurone.
@@ -74,7 +74,7 @@ L’implémentation est réalisée en C++ pour garantir rapidité et maîtrise d
 
 ## Fitness
 
-Les agents sont évalués à l'aide d'un score appelé "fitness", qui prend en compte deux paramètres essentiels à leur survie :
+Les agents sont évalués à l'aide d'un score appelé "*fitness*", qui prend en compte deux paramètres essentiels à leur survie :
 - **Énergie** : Représente la capacité à effectuer des actions. Elle diminue lors des déplacements et augmente pendant le repos.
 - **Satisfaction** : Reflète le bien-être de l’agent dans la simulation. Elle augmente, par exemple, lorsqu’il mange.
 
