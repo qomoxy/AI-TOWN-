@@ -6,14 +6,15 @@
 
 class Agent;
 
-enum class CellType { EMPTY, HOUSE, ROAD, WATER, FOREST, BOOK, APPLE, CHAMPIGNON_LUMINEUX};
+enum class CellType { EMPTY, HOUSE, ROAD, WATER, FOREST, BOOK, APPLE, CHAMPIGNON_LUMINEUX}; // différente cases envisagée
 
 
 class Map {
     private : 
+        // dimensions
         int width, height; 
         std::vector<std::vector<CellType>> grid;
-        std::map<std::pair<int, int>, int> regrowth_timers; 
+        std::map<std::pair<int, int>, int> regrowth_timers; // repousse des pommes
 
     public:
         void updateWorld(bool is_day);
