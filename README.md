@@ -1,84 +1,80 @@
 <a name="readme-top"></a>
 
 <div align="center">
-  <h3 align="center">Sociét IA</h3>
+  <h3 align="center">Société IA</h3>
+
 
   <p align="center">
-    L'étude de l'évolution d'une population dans un milieux sociale. 
-    <br/>
-  </p>
-  <p align="center">
-    Bellot Alexis & Goursaud Quentin
-    <br/>
-  </p>
-
-  <p align="center">
-    TIPE 205 - 2026
-    <br/>
+    Étude de l'évolution d'une population au sein d'un milieu social virtuel.<br>
+    <br>
+    <b>Bellot Alexis & Goursaud Quentin</b>
+    <br>
+    TIPE 2025 - 2026
+    <br>
   </p>
 </div>
 
 <!-- TABLE OF CONTENTS -->
 <details>
-  <summary>Tables des matières</summary>
+  <summary>Table des matières</summary>
   <ol>
-    <li>
-      <a href="#contexte-et-motivation">Context et motivation</a>
-    </li>
-    <li><a href="#objectif">Objectif</a></li>
-    <li><a href="#rprérequis">Prérequis</a></li>
-    <li><a href="#LSTM">LSTM</a></li>
-    <li><a href="#implémentation">Implmentation</a></li>
+    <li><a href="#contexte-et-motivation">Contexte et motivation</a></li>
+    <li><a href="#objectif">Objectifs</a></li>
+    <li><a href="#choix-du-modèle">Choix du modèle</a></li>
+    <li><a href="#lstm">LSTM</a></li>
+    <li><a href="#implémentation">Implémentation</a></li>
   </ol>
 </details>
 
 ## Contexte et motivation 
 
-  Dans un monde où le numérique est l'outil et domaine d'étude. Certain domaine et recherche sucité l'atteret du plus grand nombre. L'intelligence artificiel est le domaine d'étude qui fait réver les masses et les terrifient. Face à ces cerveau dit artificiel où l'homme modéle sons raisonement et son monde de prédilection, une idée est née. Comment des agents évolutrait t'il dans une société primaire ? Et comment les étudier ? Avec l'évolution flagrante des modéles de conversation (tel que Chat gpt ou Gemini) qui nous vendent monts et merveilles avec leurs promesse et benchMarck. Essayons de créer avec nos outils une intelligence artificiel en capacatié de survire dans une milieu primaire, et de voir si il existe une méthode analitique pour l'étudier et peut être comprendre ces faits et gestes. 
+Dans un monde où le numérique occupe une place centrale, l’intelligence artificielle (IA) suscite un intérêt croissant. Ce projet vise à explorer la façon dont une population d’agents virtuels évolue et interagit dans un environnement social simulé. L’objectif est de comprendre les dynamiques sociales et comportementales qui émergent de ces interactions, tout en abordant les enjeux liés à la modélisation de l’intelligence artificielle.
 
-## Objectif
+## Objectifs
 
-* Concevoir un monde virtuel où l'agent pourrait évoluer librement.
-* Avoir des agents intelligent et capabler d'interagir entre eux et avec le monde qui les entoures.
-* Chercher une fonction de calcul de la fitness interresante.
-* Etudier leur évolution en sain du monde avec des mesures fiable.
-
-## Le choix du modéles
-
-Il nous faut dans un premier temps identifier contraites du projets : 
-
-* Tout faire nous même.
-* Sans NPU ou GPU.
-* Finir le projet en moins d'un an.
-
-Après cela, il nous faut souligner nos beoins : un agent capable d'évoluer dans une monde primaire en société ça implique quoi : 
-
-* Capacité à interagir avec le monde et les autres agents.
-* Des scores pour indiquer la perfomance de l'agent dans sont monde et ça sociéter.
-* Evolution des agent au fil du temps, aclimatation a leur milieu de vie.
-* Un monde capable d'accuillir les agent.
-
-Cependant nous avions envie de rendre le plus intelligent possible notre agent tout en restant proche de l'être humain. L'option qui nous à parut la plus interresante parmis les différent grand modeles d'IA était le deep learning, implémenté des couches de neuronnes. Mais il manquait quelque chose qui allait rajouté une profondeur à la simulation de société : la mémoire. Elle permet différente perpective bien plus complexe tel sur les aspect sociale et de survie. Nous avons commencé par explorer les différentes formes d’IA, en particulier celles capables de gérer des données temporelles ou séquentielles.  Les réseaux de neurones récurrents, ou RNN, se sont vite imposés, car ils permettent de prendre en compte le contexte passé grâce à une mémoire interne. Cependant, les RNN classiques ont des limites, notamment lorsqu’il s’agit de retenir des informations sur le long terme. C’est là qu’interviennent les LSTM, ou Long Short-Term Memory. 
-
-A fin de comprendre, il nous zoomer sur un neuronnes récurrent. Un neurone récurrent est un neurone qui, en plus de recevoir une entrée, prend aussi en compte l’état précédent du réseau.
- Cela permet de traiter des séries temporelles, comme du texte, des sons, ou des suites d’actions.
-Cependant, comme dit précédemment, il oublie vite. C’est pour ça que l’on va s’intéresser aux LSTM, qui intègrent un mécanisme de filtrage de l'information.
-
-## LSTM 
-
-Les LSTM, proposés dans le blog de Christopher Olah, sont des réseaux qui intègrent plusieurs portes internes :
-* Une porte d’oubli : qui décide quelles informations supprimer.
-* Une porte d’entrée : pour savoir ce qu’il faut retenir.
-* Et une porte de sortie, qui détermine l’état de sortie.
+- Concevoir un environnement virtuel permettant à des agents d’évoluer librement.
+- Développer des agents intelligents capables d’interagir entre eux et avec leur environnement.
+- Définir une fonction de calcul de fitness pertinente pour évaluer la performance des agents.
+- Étudier l’évolution des agents à travers des mesures fiables et reproductibles.
 
 
-Ce mécanisme leur permet de modéliser des cycles comportementaux sur le long terme, ce qui est parfaitement adapté à notre problématique.
+## Choix du modèle
+
+### Contraintes du projet :
+- Réaliser l’ensemble du projet nous-mêmes.
+- Utiliser uniquement un CPU (sans NPU ou GPU).
+- Finaliser le projet en moins d’un an.
+
+### Besoins identifiés :
+- Des agents capables de s’adapter et d’interagir dans un monde primaire et en société.
+- Des indicateurs de performance pour mesurer l’évolution individuelle et collective.
+- Un système permettant l’évolution des agents et leur acclimatation à leur environnement.
+- Un environnement apte à accueillir et faire évoluer la population d’agents.
+
+Afin de rendre nos agents aussi intelligents que possible tout en s’inspirant du fonctionnement humain, nous avons choisi d’utiliser des réseaux de neurones récurrents, et plus précisément les LSTM (Long Short-Term Memory), pour leur capacité à gérer la mémoire et le contexte temporel.
+
+## LSTM
+
+Les LSTM, introduits par Hochreiter & Schmidhuber et popularisés par Christopher Olah, sont des réseaux de neurones récurrents dotés de plusieurs portes internes :
+- **Porte d’oubli** : décide quelles informations supprimer de la mémoire.
+- **Porte d’entrée** : sélectionne les nouvelles informations à mémoriser.
+- **Porte de sortie** : détermine l’état de sortie du neurone.
+
+Ce mécanisme permet de modéliser des comportements séquentiels et d’intégrer une mémoire à long terme, parfaitement adaptés à notre problématique : simuler des agents capables d’apprentissage et d’évolution dans un environnement social.
     
-## Implémentation 
+## Implémentation
 
-Pour l’implémentation, nous avons utilisé le langage C++ pour la rapidité d'exécution et la maîtrise de la mémoire.
- Nous avons traduit les équations mathématiques du LSTM et tenté de créer une version fonctionnelle en code.
-Cette partie a été complexe car il fallait à la fois comprendre les formules, souvent issues de l’analyse matricielle, coder les fonctions, et vérifier que tout fonctionnait avec les bons types de données.
+L’implémentation est réalisée en C++ pour garantir rapidité et maîtrise de la mémoire.
+- Traduction des équations mathématiques des LSTM en code C++ optimisé.
+- Création d’agents virtuels intégrant un réseau LSTM pour la prise de décision et l’apprentissage.
+- Développement d’un environnement simulé permettant l’observation et l’analyse des interactions sociales.
+- Tests et validations pour assurer la robustesse et la fiabilité du modèle.
+
+---
+
+> Pour toute suggestion ou question, n’hésitez pas à ouvrir une issue !
+
+<a href="#readme-top">Retour en haut</a>
 
 
 
