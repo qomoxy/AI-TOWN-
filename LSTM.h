@@ -19,7 +19,7 @@ private:
     int input_size;
     int hidden_size;
 
-    
+    // Poids
     LSTM_weight weights;
     
     // États cachés
@@ -35,12 +35,14 @@ private:
         return std::tanh(x);
     }
 
+    // seed aléatoire globalisé
     std::mt19937 generator;
 
 public:
       
     LSTM(int input_size, int hidden_size) 
         : input_size(input_size), hidden_size(hidden_size), generator(std::random_device{}()) {
+            // Création du cerveau avec initialisation des poids et des états cachée
             h_prev = std::vector<double>(hidden_size, 0.0);
             c_prev = std::vector<double>(hidden_size, 0.0);
             initialize_weights();
@@ -85,7 +87,7 @@ public:
         weights.bo = init_vector(hidden_size);
     }
 
-    // getters (Arrah)
+    // getters 
     LSTM_weight getWeights() const { 
         return this->weights;
     }
@@ -108,7 +110,7 @@ public:
 
 
     
-    
+    // setters
     void setWeights(const LSTM_weight& new_weights) { 
         this->weights = new_weights;
     }
@@ -172,7 +174,7 @@ public:
 
     void mutate(double mutateRate) {
         
-        
+        // mutation du cerveau aléatoirement
         std::uniform_real_distribution<double> prob_dist(0.0, 1.0);
         std::uniform_real_distribution<double> mutation_dist(-0.05, 0.05);
 
@@ -207,10 +209,11 @@ public:
     }
 
     LSTM breed(const LSTM& parent) const {
+        // Création d'un nouveau LSTM à partir des LSTM parents
         LSTM child(this->input_size, this->hidden_size);
         LSTM_weight child_weights;
         
-        const LSTM_weight& parent_weights = parent.getWeights(); // Récupère les poids du parent
+        const LSTM_weight& parent_weights = parent.getWeights();
 
         auto breed_vector = [&](const std::vector<double>& v1, const std::vector<double>& v2) {
             std::vector<double> result(v1.size());
