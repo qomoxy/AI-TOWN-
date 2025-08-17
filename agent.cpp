@@ -15,7 +15,7 @@ std::vector<double> Agent::perceive(const Map& map, const std::vector<Agent>& al
     perception_vector.push_back(config.energie / 100.0);
     perception_vector.push_back(config.satisfaction / 100.0);
 
-    int vision_range = is_day ? 4 : 2;
+    int vision_range = is_day ? 4 : 2; // différe entre le jour est la nuit 
 
     if(last_known_food_pos.has_value()) {
         int dx = last_known_food_pos->first - config.x;
