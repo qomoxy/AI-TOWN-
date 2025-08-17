@@ -142,7 +142,7 @@ void Simulation::evolvePopulation() {
     // Remplacer population
     agents = std::move(next_generation);
 }
-
+// le but de cette fonction est d'avoir une simulation la plus rapide possible. En contre partie de cette vitesse, on perd : l'affichage et moins de data. 
 void Simulation::fast_run() {
     while (day < 50000) {
 
@@ -170,7 +170,7 @@ void Simulation::fast_run() {
     logfile.close();
     
 }
-
+// simulation avec affichage 
 void Simulation::run() {
     while (day < 25) {
         std::cout << "----------- JOUR " << day << " -----------" << std::endl;
@@ -203,6 +203,8 @@ void Simulation::run() {
     logfile.close();
     
 }
+
+// gestion des données dans un fichier csv
 
 void Simulation::logDailyStats() {
     if (!logfile.is_open() || agents.empty()) {
