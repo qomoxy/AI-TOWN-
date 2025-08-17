@@ -8,6 +8,7 @@
 #include <fstream>
 
 struct AgentConfig { 
+    // Info
     std::string name;
     unsigned int id;
     
@@ -31,6 +32,8 @@ private:
 
     std::map<unsigned int, int> social_memory;
     std::optional<std::pair<int, int>> last_known_food_pos;
+
+    // Actions
     void _eat(int nutrition_score);
     void _move(Map& map, std::mt19937& rng);
     void _interact(Map& map);
