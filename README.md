@@ -20,16 +20,12 @@
     <li><a href="#contexte-et-motivation">Contexte et motivation</a></li>
     <li><a href="#objectifs">Objectifs</a></li>
     <li><a href="#choix-du-modèle">Choix du modèle</a></li>
-    <li><a href="#prérequis">Prérequis</a></li>
     <li><a href="#lstm">LSTM</a></li>
     <li><a href="#implémentation">Implémentation</a></li>
     <li><a href="#fitness">Fitness</a></li>
     <li><a href="#algorithme-parental">Algorithme parental</a></li>
     <li><a href="#installation">Installation</a></li>
     <li><a href="#documentation">Documentation</a></li>
-    <li><a href="#contribuer">Contribuer</a></li>
-    <li><a href="#license">Licence</a></li>
-    <li><a href="#contact">Contact</a></li>
   </ol>
 </details>
 
