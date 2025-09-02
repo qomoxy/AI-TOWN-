@@ -1,14 +1,14 @@
 <a name="readme-top"></a>
 
 <div align="center">
-  <h3 align="center">Sociét IA — TIPE 205 (2026)</h3>
+  <h3 align="center">Société IA — TIPE 2025-2026</h3>
 
   <p align="center">
     Étude de l'évolution d'une population au sein d'un milieu social virtuel.<br>
     <br>
     <b>Bellot Alexis & Goursaud Quentin</b>
     <br>
-    TIPE 205 - 2026
+    TIPE Cycle et boucles
     <br>
   </p>
 </div>
