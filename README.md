@@ -170,7 +170,7 @@ L'agent a le choix de faire différentes actions en fonction de l'environnement 
 </ol>
 
 **Satisfaction** : un score qui commence à 25, qui ne peut pas dépasser 100. <br>
-**Énergie** : un score qui commence à 50, qui ne peut dépasser 100 et qui peut être négatif.
+**Énergie** : un score qui commence à 50, qui ne peut dépasser 100 et qui peut être négatif. A la fin de chaque tour, l'agent perd 1 point d'énergie si c'est le jour, sinon 1.5.
 
 ### Données 
 
