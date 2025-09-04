@@ -163,14 +163,14 @@ L'agent a le choix de faire différentes actions en fonction de l'environnement 
 
 
 <ol>
-  <li>Manger : Si une case avec un comestible est non loin de lui, il peut la consommer pour obtenir 20 points d'énergie.</li>
-  <li>Parler : Si un agent est proche, il peut lui parler pour gagner de la satisfaction en fonction de leur "relation sociale" et donner 5 à l'autre agent. Il peut communiquer les coordonnées de la dernière nourriture trouvée. (Il lui faut plus de 15 points d'énergie.)/li>
-  <li>Dormir : Donne 5 énergies la nuit.</li>
-  <li>Déplacement : Se déplace de trois cases au max.</li>
+  <li>**Manger** : Si une case avec un comestible est non loin de lui, il peut la consommer pour obtenir 20 points d'énergie.</li>
+  <li>**Parler** : Si un agent est proche, il peut lui parler pour gagner de la satisfaction en fonction de leur "relation sociale" et donner 5 à l'autre agent. Il peut communiquer les coordonnées de la dernière nourriture trouvée. (Il lui faut plus de 15 points d'énergie.)/li>
+  <li>**Dormir** : Donne 5 énergies la nuit.</li>
+  <li>**Déplacement** : Se déplace de trois cases au max.</li>
 </ol>
 
-Satisfaction : un score qui commence à 25, qui ne doit pas dépasser 100.
-Énergie : un score qui commence à 50, qui ne peut dépasser 100 et qui peut être négatif.
+**Satisfaction** : un score qui commence à 25, qui ne doit pas dépasser 100.
+**Énergie** : un score qui commence à 50, qui ne peut dépasser 100 et qui peut être négatif.
 
 ---
 
