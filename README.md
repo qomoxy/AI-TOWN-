@@ -43,11 +43,13 @@ Dans un monde où le numérique occupe une place centrale, l’intelligence arti
 ## Choix du modèle
 
 ### Contraintes du projet :
+
 - **Autonomie** : Réaliser l’ensemble du projet nous-mêmes.
 - **Ressources** : Utiliser uniquement un CPU (sans NPU ou GPU).
 - **Temporalité** : Finaliser le projet en moins d’une année scolaire.
 
 ### Besoins identifiés :
+
 - Des agents capables de s’adapter, d’interagir et d’évoluer en société.
 - Des indicateurs de performance pour mesurer leur évolution individuelle et collective.
 - Un système permettant l’évolution et l’acclimatation des agents à leur environnement.
@@ -142,6 +144,33 @@ Voici la structure des fichiers sources principaux
 - **monde.h / monde.cpp** : Gestion de l’environnement virtuel.
 - **simulation.h / simulation.cpp** : Logique de la simulation.
 
+### Affichage 
+
+Avec la fonction run(n), vous pouvez accéder à un affichage rudimentaire de la simulation au sein de votre Terminal. Voici les différences symboles : 
+
+- **@** : Agent (personnage)
+- **.** : Case vide
+- **~** : Mur (non franchissable)
+- **T** : Forêt
+- **A** : Pomme (comestible donne 20 d'énergie, 0.1% de chance de remplacer une case vide par tour)
+- **C** : Champignon lumineux (comestible donne 20 d'énergie, apparaît que la nuit, même tôt de spawn que les pommes)
+
+Le jour est affiché à chaque début d'un nouveau jour. La map est un carré de nxn.
+
+### Actions et Récompenses
+
+L'agent a le choix de faire différentes actions en fonction de l'environnement qui l'entoure, il a un champ de vision de 4x4 autour de lui. Une action par tour.
+
+
+<ol>
+  <li>Manger : Si une case avec un comestible est non loin de lui, il peut la consommer pour obtenir 20 points d'énergie.</li>
+  <li>Parler : Si un agent est proche, il peut lui parler pour gagner de la satisfaction en fonction de leur "relation sociale" et donner 5 à l'autre agent. Il peut communiquer les coordonnées de la dernière nourriture trouvée. (Il lui faut plus de 15 points d'énergie.)/li>
+  <li>Dormir : Donne 5 énergies la nuit.</li>
+  <li>Déplacement : Se déplace de trois cases au max.</li>
+</ol>
+
+Satisfaction : un score qui commence à 25, qui ne doit pas dépasser 100.
+Énergie : un score qui commence à 50, qui ne peut dépasser 100 et qui peut être négatif.
 
 ---
 
