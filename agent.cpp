@@ -135,7 +135,7 @@ void Agent::addSatisfaction(double amount) {
 }
 
 // ACTION PRINCIPALE
-void Agent::act(const std::vector<double>& decision_vector, Map& map, std::vector<Agent>& all_agents, bool is_day, std::mt1997& rng) {
+void Agent::act(const std::vector<double>& decision_vector, Map& map, std::vector<Agent>& all_agents, bool is_day, std::mt19937& rng) {
 
     int best_action_index = 0;
     for (size_t i = 1; i < decision_vector.size(); ++i) {
