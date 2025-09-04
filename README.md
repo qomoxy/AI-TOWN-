@@ -176,6 +176,12 @@ L'agent a le choix de faire différentes actions en fonction de l'environnement 
 
 A la fin de la simulation, un fichier .csv sera présent sous le nom de **simulation_log.csv** avec dedans des données comme la fitness moyenne, l'énergie et la satisfaction moyenne durant les jours de la simulation.
 
+### Sources Utilisée
+
+Blog de Colah : https://colah.github.io/posts/2015-08-Understanding-LSTMs/
+
+
+
 ---
 
 > Pour toute suggestion ou question, n’hésitez pas à ouvrir une issue !
