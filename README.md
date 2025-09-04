@@ -181,7 +181,14 @@ A la fin de la simulation, un fichier .csv sera présent sous le nom de **simula
 
 Blog de Colah : https://colah.github.io/posts/2015-08-Understanding-LSTMs/
 
+## A venir :
+Le résultat de nos observations avec des données précises et intéressantes d'une simulation.
+L'ajout d'un fichier configuration pour stocker l'ensemble des paramètres bruts, pour une meilleure lisibilité et plus simple à modifier.
+Meullier gestion de la nourriture et cases.
 
+**Peut-être** : interaction sociale négative quand elles sont ratées ou que le score est bas, et des actions antisociales comme manger la pomme d'un autre. 
+Meullier gestion de last food position
+Cycle de vie ou de mort avec reproduction intégrée.
 
 ---
 
