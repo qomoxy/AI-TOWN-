@@ -169,8 +169,12 @@ L'agent a le choix de faire différentes actions en fonction de l'environnement 
   <li> <b>Déplacement</b> : Se déplace de trois cases au max.</li>
 </ol>
 
-**Satisfaction** : un score qui commence à 25, qui ne doit pas dépasser 100. <br>
+**Satisfaction** : un score qui commence à 25, qui ne peut pas dépasser 100. <br>
 **Énergie** : un score qui commence à 50, qui ne peut dépasser 100 et qui peut être négatif.
+
+### Données : 
+
+A la fin de la simulation, un fichier .csv sera présent sous le nom de **simulation_log.csv** avec dedans des données comme la fitness moyenne, l'énergie et la satisfaction moyenne durant les jours de la simulation.
 
 ---
 
