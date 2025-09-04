@@ -89,9 +89,10 @@ où w₁ = 0.4 et w₂ = 0.6.
 ## Cycle d'Évolution et Sélection
 
 Pour simuler une évolution darwinienne, un cycle de sélection a lieu tous les 5 jours (temps simulé) pour créer une nouvelle génération :
-- **Élitisme (10%)** : Les 10% des agents ayant le meilleur score de fitness sont conservés tels quels pour la génération suivante.
-- **Aléatoire (5%)** : 5% des agents sont sélectionnés au hasard pour préserver la diversité génétique.
-- **Renouvellement (85%)** : Le reste de la population est renouvelé par reproduction et mutation des agents sélectionnés.
+- **Élitisme (10%)** : Les meilleurs agents sont conservés.
+- **Immigration (10%)** : Pour injecter de la diversité, 10% de la nouvelle population est composée d'agents totalement nouveaux avec un cerveau aléatoire.
+- **Survivants aléatoires (5%)** : Quelques agents non-élites sont conservés pour préserver le patrimoine génétique
+- **Renouvellement (85%)** : Le reste de la population est renouvelé par reproduction et mutation des agents élite sélectionnés.
 
 Ce mécanisme permet de garantir à la fois une amélioration progressive des performances et une diversité suffisante pour éviter les optima locaux.
 
@@ -164,7 +165,7 @@ L'agent a le choix de faire différentes actions en fonction de l'environnement 
 
 <ol>
   <li> <b>Manger</b> : Si une case avec un comestible est non loin de lui, il peut la consommer pour obtenir 20 points d'énergie.</li>
-  <li> <b>Parler</b> : Si un agent est proche, il peut lui parler pour gagner de la satisfaction en fonction de leur "relation sociale" et donner 5 à l'autre agent. Il peut communiquer les coordonnées de la dernière nourriture trouvée. (Il lui faut plus de 15 points d'énergie.)</li>
+  <li> <b>Parler</b> : Si un agent est proche, il peut lui parler pour gagner de la satisfaction. Ce gain est mutuel et dépend de leur score social réciproque : une bonne entente résulte en un gain élevé pour les deux agents, tandis qu'une mauvaise entente ne donne que peu ou pas de la satisfaction.</li>
   <li> <b>Dormir</b> : Donne 5 énergies la nuit.</li>
   <li> <b>Déplacement</b> : Se déplace de trois cases au max.</li>
 </ol>
