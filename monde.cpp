@@ -8,25 +8,24 @@ Map::Map(int w, int h) : width(w), height(h) {
     grid.resize(height, std::vector<CellType>(width, CellType::EMPTY));
     srand(time(0));
 }
-// checker que la case est une case valide
+
 bool Map::isValidPosition(int x, int y) const {
     return x >= 0 && x < width && y >= 0 && y < height;
 }
-// getters
+
 CellType Map::getCell(int x, int y) const {
     if (isValidPosition(x, y)) {
         return grid[y][x];
     }
     return CellType::WATER; // Retourner une case "infranchissable" si hors map
 }
-//setters
+
 void Map::setCell(int x, int y, CellType type) {
     if (isValidPosition(x, y)) {
         grid[y][x] = type;
     }
 }
 
-// mise à jour du monde 
 void Map::updateWorld(bool is_day) {
     // Pour chaque case vide, il y a une petite chance qu'un buisson repousse
     for (int y = 0; y < height; ++y) {
@@ -43,7 +42,6 @@ void Map::updateWorld(bool is_day) {
     }
 }
 
-// création d'un monde aléatoire avec des dimensions choisi
 void Map::generateRandomWorld() {
     for (int i = 0; i < (width * height) / 10; ++i) {
         grid[rand() % height][rand() % width] = CellType::FOREST;
@@ -58,7 +56,6 @@ void Map::generateRandomWorld() {
     }
 }
 
-// affichage du monde 
 void Map::display(const std::vector<Agent>& agents) {
     system("clear"); // ou "cls" sur Windows
     std::vector<std::vector<char>> displayGrid(height, std::vector<char>(width));
@@ -68,6 +65,7 @@ void Map::display(const std::vector<Agent>& agents) {
             switch (grid[y][x]) {
                 case CellType::EMPTY:  displayGrid[y][x] = '.'; break;
                 case CellType::HOUSE:  displayGrid[y][x] = 'H'; break;
+                case CellType::APPLE:  displayGrid[y][x] = 'A'; break;
                 case CellType::WATER:  displayGrid[y][x] = '~'; break;
                 case CellType::FOREST: displayGrid[y][x] = 'T'; break;
                 case CellType::ROAD:   displayGrid[y][x] = '#'; break;

@@ -8,7 +8,6 @@
 #include <fstream>
 
 struct AgentConfig { 
-    // Info
     std::string name;
     unsigned int id;
     
@@ -32,8 +31,6 @@ private:
 
     std::map<unsigned int, int> social_memory;
     std::optional<std::pair<int, int>> last_known_food_pos;
-
-    // Actions
     void _eat(int nutrition_score);
     void _move(Map& map, std::mt19937& rng);
     void _interact(Map& map);
@@ -56,6 +53,9 @@ public:
     int getSocialMemorySize() const {return social_memory.size(); }
     void setBrain(const LSTM& new_brain) { this->brain = new_brain; }
     double getFitness() const { return config.energie *0.4 + config.satisfaction *0.6; }
+    int getSocialScoreFor(unsigned int agent_id) const;
+    void updateSocialScoreFor(unsigned int agent_id, int change);
+    void addSatisfaction(double amount);
 
 
     // Logique de l'agent

@@ -6,17 +6,25 @@
 
 
 Simulation::Simulation(int map_width, int map_height, int num_agents) 
-    : map(map_width, map_height), day(0), rng(std::random_device{}()) {
+    : map(map_width, map_height), day(0) {
     map.generateRandomWorld();
-    int input_size = 52;
+
+    // Initialise le générateur avec une source de hasard de haute qualité
+    std::random_device rd;
+    rng.seed(rd());
+
+    int input_size = (25 * 2) + 2;
     int hidden_size = 8;
     for (int i = 0; i < num_agents; ++i) {
         agents.emplace_back("Agent" + std::to_string(i), i, 5 + i, 5, input_size, hidden_size);
     }
     logfile.open("simulation_log.csv"); // Ouvre (ou crée) le fichier
     if (logfile.is_open()) {
-        // Écrit l'en-tête du fichier CSV
-        logfile << "jour,population,fitness_moyen,energie_moyenne,satisfaction_moyenne\n";
+        logfile << "fitness_moyen,energie_moyenne,satisfaction_moyenne,\n";
+    }
+    social_logfile.open("social_log.csv");
+    if (social_logfile.is_open()) {
+        social_logfile << "jour,agent_source_id,agent_cible_id,score_relation\n";
     }
 }
 
@@ -142,18 +150,20 @@ void Simulation::evolvePopulation() {
     // Remplacer population
     agents = std::move(next_generation);
 }
-// le but de cette fonction est d'avoir une simulation la plus rapide possible. En contre partie de cette vitesse, on perd : l'affichage et moins de data. 
-void Simulation::fast_run() {
-    while (day < 50000) {
 
-        for (auto& agent : agents) {
+
+void Simulation::fast_run() {
+    while(day < 50000) {
+        
+        
+        for (auto& agent  : agents) {
             std::vector<double> perception = agent.perceive(map, agents, is_day);
             std::vector<double> decision = agent.think(perception);
             agent.act(decision, map, agents, is_day, rng);
         }
-        
-        map.updateWorld(is_day);
 
+
+        map.updateWorld(is_day);
         time_of_day++;
         if (time_of_day >= DAY_DURATION * 2) {
             time_of_day = 0;
@@ -168,25 +178,33 @@ void Simulation::fast_run() {
     }
 
     logfile.close();
-    
 }
-// simulation avec affichage 
+
+
+
 void Simulation::run() {
-    while (day < 25) {
+    while (day < 10) {
+        daily_action_counts.clear();
         std::cout << "----------- JOUR " << day << " -----------" << std::endl;
 
         
         
-        for (auto& agent : agents) {
+        for (auto& agent  : agents) {
             std::vector<double> perception = agent.perceive(map, agents, is_day);
             std::vector<double> decision = agent.think(perception);
             agent.act(decision, map, agents, is_day, rng);
+
         }
         
         map.updateWorld(is_day);
         map.display(agents);
         usleep(200000);
-        logDailyStats();
+        if (time_of_day == 0) { // Au début de chaque nouvelle journée
+            logDailyStats();
+            if (day % 10 == 0) { // Tous les 10 jours
+            logSocialNetworkSnapshot();
+            }
+        }
 
         time_of_day++;
         if (time_of_day >= DAY_DURATION * 2) {
@@ -204,8 +222,6 @@ void Simulation::run() {
     
 }
 
-// gestion des données dans un fichier csv
-
 void Simulation::logDailyStats() {
     if (!logfile.is_open() || agents.empty()) {
         return; // Ne rien faire si le fichier n'est pas ouvert ou s'il n'y a pas d'agents
@@ -218,8 +234,8 @@ void Simulation::logDailyStats() {
 
     for (const auto& agent : agents) {
         total_fitness += agent.getFitness();
-        total_energie += agent.getEnergie(); // Ajoute un getter pour energie
-        total_satisfaction += agent.getSatisfaction(); // Ajoute un getter pour satisfaction
+        total_energie += agent.getEnergie(); 
+        total_satisfaction += agent.getSatisfaction();
     }
 
     int taille_de_la_pop = agents.size();
@@ -228,9 +244,19 @@ void Simulation::logDailyStats() {
     double average_satisfaction = total_satisfaction / taille_de_la_pop;
 
     // --- ÉCRITURE DANS LE FICHIER ---
-    logfile << day << ","
-            << taille_de_la_pop << ","
+    logfile 
             << average_fitness << ","
             << average_energie << ","
-            << average_satisfaction << "\n";
+            << average_satisfaction << ",";
+
+    logfile << "\n";
+}
+
+void Simulation::logSocialNetworkSnapshot() {
+    if (!social_logfile.is_open()) return;
+
+    for (const auto& agent : agents) {
+        // Demande à chaque agent de logger ses relations
+        agent.logSocialMemory(day, social_logfile);
+    }
 }
