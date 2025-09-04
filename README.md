@@ -172,7 +172,7 @@ L'agent a le choix de faire différentes actions en fonction de l'environnement 
 **Satisfaction** : un score qui commence à 25, qui ne peut pas dépasser 100. <br>
 **Énergie** : un score qui commence à 50, qui ne peut dépasser 100 et qui peut être négatif.
 
-### Données : 
+### Données 
 
 A la fin de la simulation, un fichier .csv sera présent sous le nom de **simulation_log.csv** avec dedans des données comme la fitness moyenne, l'énergie et la satisfaction moyenne durant les jours de la simulation.
 
