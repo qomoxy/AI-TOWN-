@@ -95,6 +95,7 @@ Pour simuler une évolution darwinienne, un cycle de sélection a lieu tous les 
 - **Renouvellement (85%)** : Le reste de la population est renouvelé par reproduction et mutation des agents élite sélectionnés.
 
 Ce mécanisme permet de garantir à la fois une amélioration progressive des performances et une diversité suffisante pour éviter les optima locaux.
+La mutation est évolutive, qui a pour but de secouer la population si sa fitness moyenne reste stable.
 
 ## Pour commencer
 
