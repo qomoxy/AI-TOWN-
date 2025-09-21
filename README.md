@@ -111,7 +111,7 @@ La mutation est évolutive, qui a pour but de secouer la population si sa fitnes
 
 1. Clonez ce dépôt sur votre machine locale :
     ```shell
-    git clone https://github.com/qomoxy/AI-TOWN-
+    git clone https://github.com/qomoxy/AI-TOWN-.git
     cd AI-TOWN-
     ```
 
