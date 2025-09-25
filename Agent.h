@@ -23,6 +23,8 @@ struct AgentConfig {
 
 class Agent {
 private:
+    // Constante pour la vision, garantit une taille de perception fixe
+    static const int VISION_RANGE = 3;
 
     LSTM brain;
     
@@ -31,12 +33,17 @@ private:
 
     std::map<unsigned int, int> social_memory;
     std::optional<std::pair<int, int>> last_known_food_pos;
-    void _eat(int nutrition_score);
+
+    // Fonctions d'action privées pour une meilleure lisibilité
+    void _eat(Map& map);
     void _move(Map& map, std::mt19937& rng);
     void _interact(Map& map);
     Agent* _findNearbyAgent(std::vector<Agent>& all_agents);
 
 public:
+
+    static const int PERCEPTION_SIZE = 102;
+    
     // Constructeur 
     Agent(const std::string& name, unsigned int id, int startX, int startY, int input_size, int hidden_size);
 
@@ -47,12 +54,16 @@ public:
     const LSTM& getBrain() const { return brain; } // Pour le breeding
     int getX() const { return config.x; }
     int getY() const { return config.y; }
-    int getId() const {return config.id; }
+    unsigned int getId() const {return config.id; }
     double getEnergie() const {return config.energie; }
     double getSatisfaction() const {return config.satisfaction; }
     int getSocialMemorySize() const {return social_memory.size(); }
     void setBrain(const LSTM& new_brain) { this->brain = new_brain; }
-    double getFitness() const { return config.energie *0.4 + config.satisfaction *0.6; }
+
+    double getFitness() const { 
+        return (config.energie + 1.0) * (config.satisfaction + 1.0); 
+    }
+
     int getSocialScoreFor(unsigned int agent_id) const;
     void updateSocialScoreFor(unsigned int agent_id, int change);
     void addSatisfaction(double amount);
@@ -69,3 +80,4 @@ public:
     void mutateBrain(double mutationRate);
     Agent breedWith(const Agent& partner, const std::string& childName, unsigned int childId, int startX, int startY) const;
 };
+

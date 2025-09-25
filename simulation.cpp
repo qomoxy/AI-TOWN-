@@ -3,24 +3,47 @@
 #include <vector>
 #include <algorithm> // Pour std::sort
 #include <unistd.h> 
+#include <set>
 
 
 Simulation::Simulation(int map_width, int map_height, int num_agents) 
     : map(map_width, map_height), day(0) {
-    map.generateRandomWorld();
-
-    // Initialise le générateur avec une source de hasard de haute qualité
+    
     std::random_device rd;
     rng.seed(rd());
 
-    int input_size = (25 * 2) + 2;
-    int hidden_size = 8;
+    map.generateRandomWorld(rng);
+
+    // ** CORRECTION : Les agents apparaissent à des positions aléatoires et valides **
+    std::uniform_int_distribution<int> dist_x(0, map.getWidth() - 1);
+    std::uniform_int_distribution<int> dist_y(0, map.getHeight() - 1);
+    std::set<std::pair<int, int>> occupied_positions; // Pour éviter les superpositions
+
+    // Taille du vecteur de perception. DOIT correspondre à la logique dans Agent::perceive
+    // 2 (stats) + 2 (food_info) + (7x7 * 2) (vision grille) = 102
+    int input_size = Agent::PERCEPTION_SIZE;
+    int hidden_size = 8; // La taille de la couche cachée/sortie du LSTM
+
     for (int i = 0; i < num_agents; ++i) {
-        agents.emplace_back("Agent" + std::to_string(i), i, 5 + i, 5, input_size, hidden_size);
+        int x, y;
+        do {
+            x = dist_x(rng);
+            y = dist_y(rng);
+        // On cherche une nouvelle position tant que la case est de l'eau ou déjà occupée
+            attempts++;
+            if (attempts > 1000) {
+                // Logique de secours : première position valide trouvée
+                break;
+            }
+        } while (map.getCell(x, y) == CellType::WATER || occupied_positions.count({x, y}));
+        
+        occupied_positions.insert({x, y});
+        agents.emplace_back("Agent" + std::to_string(i), i, x, y, input_size, hidden_size);
     }
-    logfile.open("simulation_log.csv"); // Ouvre (ou crée) le fichier
+    
+    logfile.open("simulation_log.csv"); 
     if (logfile.is_open()) {
-        logfile << "fitness_moyen,energie_moyenne,satisfaction_moyenne,\n";
+        logfile << "fitness_moyen,energie_moyenne,satisfaction_moyenne\n";
     }
     social_logfile.open("social_log.csv");
     if (social_logfile.is_open()) {
@@ -33,38 +56,27 @@ void Simulation::evolvePopulation() {
 
     const int current_pop_size = (int)agents.size();
 
-    // --- Calcul de la fitness moyenne (pour mutation adaptative) ---
+    //Calcul de la fitness moyenne (pour mutation adaptative) 
     double avg_fitness = 0.0;
     for (const auto &a : agents) avg_fitness += a.getFitness();
     avg_fitness /= current_pop_size;
 
-    // variable statique interne pour mémoriser la dernière meilleure moyenne
     static double prev_avg_fitness = -1e300;
     static int stagnant_generations = 0;
 
-    if (prev_avg_fitness < -1e200) { // première exécution
-        prev_avg_fitness = avg_fitness;
-        stagnant_generations = 0;
+    if (avg_fitness <= prev_avg_fitness + 1e-6) {
+        stagnant_generations++;
     } else {
-        if (avg_fitness <= prev_avg_fitness + 1e-6) {
-            stagnant_generations++;
-        } else {
-            stagnant_generations = 0;
-            prev_avg_fitness = avg_fitness;
-        }
+        stagnant_generations = 0;
+        prev_avg_fitness = avg_fitness;
     }
 
-    // mutation adaptative
-    double base_mutation_rate = 0.05; // mutation par défaut
-    double mutation_rate = base_mutation_rate;
-    if (stagnant_generations >= 5) {
-        mutation_rate = 0.25; // secouer la population si stagnation
-    }
+    double mutation_rate = (stagnant_generations >= 5) ? 0.25 : 0.1;
 
     // --- paramètres de la sélection ---
-    int elite_count = std::max(1, current_pop_size / 10);       // top 10%
-    int random_survivors = std::max(1, current_pop_size / 20); // ~5%
-    int newcomers_count = std::max(1, current_pop_size / 10);  // 10% newcomers
+    int elite_count = std::max(1, current_pop_size / 10);
+    int random_survivors = std::max(1, current_pop_size / 20);
+    int newcomers_count = std::max(1, current_pop_size / 10);
 
     // distributions utiles
     std::uniform_int_distribution<int> dist_idx(0, current_pop_size - 1);
@@ -72,7 +84,6 @@ void Simulation::evolvePopulation() {
     std::uniform_int_distribution<int> dist_y(0, map.getHeight() - 1);
     std::uniform_real_distribution<double> dist01(0.0, 1.0);
 
-    // --- Trier par fitness décroissante ---
     std::sort(agents.begin(), agents.end(), [](const Agent& a, const Agent& b) {
         return a.getFitness() > b.getFitness();
     });
@@ -80,47 +91,20 @@ void Simulation::evolvePopulation() {
     std::vector<Agent> next_generation;
     next_generation.reserve(current_pop_size);
 
-    // 1) Garder les élites (copies directes)
-    for (int i = 0; i < elite_count && (int)next_generation.size() < current_pop_size; ++i) {
+    for (int i = 0; i < elite_count; ++i) {
         next_generation.push_back(agents[i]);
     }
-
-    // 2) Garder quelques survivants aléatoires (préserver diversité)
-    for (int i = 0; i < random_survivors && (int)next_generation.size() < current_pop_size; ++i) {
-        int idx = dist_idx(rng);
-        next_generation.push_back(agents[idx]);
-    }
-
-    // 3) Immigration mixte : moitié totalement aléatoires, moitié clones mutés d'agents moyens
-    int half_new = newcomers_count / 2;
-    for (int i = 0; i < half_new && (int)next_generation.size() < current_pop_size; ++i) {
-        // newcomer totalement aléatoire (nouveau cerveau, position aléatoire)
-        int nx = dist_x(rng), ny = dist_y(rng);
-        unsigned int newId = static_cast<unsigned int>(day * 10000 + next_generation.size());
-        // brain sizes taken from an existing agent (safe because agents non-empty)
-        int in_size = agents[0].getBrain().getInputSize();
-        int hid_size = agents[0].getBrain().getHiddenSize();
-        next_generation.emplace_back("Newcomer_rand_" + std::to_string(newId), newId, nx, ny, in_size, hid_size);
-    }
-    for (int i = 0; i < newcomers_count - half_new && (int)next_generation.size() < current_pop_size; ++i) {
-        // newcomer = clone d'un agent moyen + forte mutation (exploration guidée)
-        int idx = dist_idx(rng);
-        Agent clone = agents[idx];
-        clone.mutateBrain(0.35); // mutation forte
-        // repositionne aléatoirement
-        // (on suppose Agent a setters via constructeur copie; sinon on reconstruit)
-        next_generation.push_back(clone);
+    for (int i = 0; i < random_survivors; ++i) {
+        next_generation.push_back(agents[dist_idx(rng)]);
     }
 
     // --- fonction de sélection de parents : tournoi (k = 3) ---
     auto tournament_select = [&](int k = 3) -> const Agent& {
         int best_idx = dist_idx(rng);
-        double best_fit = agents[best_idx].getFitness();
         for (int t = 1; t < k; ++t) {
             int idx = dist_idx(rng);
-            if (agents[idx].getFitness() > best_fit) {
+            if (agents[idx].getFitness() > agents[best_idx].getFitness()) {
                 best_idx = idx;
-                best_fit = agents[idx].getFitness();
             }
         }
         return agents[best_idx];
@@ -128,8 +112,8 @@ void Simulation::evolvePopulation() {
 
     // 4) Reproduction jusqu'à remplissage
     while ((int)next_generation.size() < current_pop_size) {
-        const Agent& parent1 = tournament_select(3);
-        const Agent& parent2 = tournament_select(3);
+        const Agent& parent1 = tournament_select();
+        const Agent& parent2 = tournament_select();
 
         int startX = dist_x(rng);
         int startY = dist_y(rng);
@@ -137,97 +121,97 @@ void Simulation::evolvePopulation() {
         unsigned int childId = static_cast<unsigned int>(day * 10000 + next_generation.size());
         Agent child = parent1.breedWith(parent2, "Agent_child_" + std::to_string(childId), childId, startX, startY);
 
-        // mutation probabiliste basée sur mutation_rate (déterministe si dist01)
         if (dist01(rng) < mutation_rate) {
-            // mutation proportionnelle (valeur aléatoire autour de mutation_rate)
-            double mrate = mutation_rate * (0.5 + dist01(rng)); 
-            child.mutateBrain(mrate);
+            child.mutateBrain(mutation_rate * (0.5 + dist01(rng)));
         }
 
         next_generation.push_back(child);
     }
-
-    // Remplacer population
     agents = std::move(next_generation);
 }
 
 
 void Simulation::fast_run() {
+    int last_evolution_day = 0;
     while(day < 50000) {
         
-        
-        for (auto& agent  : agents) {
+        for (auto& agent : agents) {
             std::vector<double> perception = agent.perceive(map, agents, is_day);
             std::vector<double> decision = agent.think(perception);
             agent.act(decision, map, agents, is_day, rng);
         }
 
 
-        map.updateWorld(is_day);
+        map.updateWorld(is_day, rng);
         time_of_day++;
         if (time_of_day >= DAY_DURATION * 2) {
             time_of_day = 0;
             day++;
             logDailyStats();
+
+            if (day % 10 == 0) {
+                logSocialNetworkSnapshot();
+            }
+
+            // L'évolution a lieu tous les 5 jours
+            if(day % 5 == 0 && day != last_evolution_day) {
+                evolvePopulation();
+                last_evolution_day = day;
+            }
         }
         is_day = (time_of_day < DAY_DURATION);
-
-        if((day %5) == 0 && day != 0) {
-            evolvePopulation();
-        }
     }
-
     logfile.close();
+    social_logfile.close();
 }
 
 
 
 void Simulation::run() {
-    while (day < 10) {
-        daily_action_counts.clear();
-        std::cout << "----------- JOUR " << day << " -----------" << std::endl;
-
+    int last_evolution_day = 0;
+    while (day < 500) {
         
-        
-        for (auto& agent  : agents) {
+        for (auto& agent : agents) {
             std::vector<double> perception = agent.perceive(map, agents, is_day);
             std::vector<double> decision = agent.think(perception);
             agent.act(decision, map, agents, is_day, rng);
-
         }
         
-        map.updateWorld(is_day);
+        map.updateWorld(is_day, rng);
         map.display(agents);
-        usleep(200000);
-        if (time_of_day == 0) { // Au début de chaque nouvelle journée
-            logDailyStats();
-            if (day % 10 == 0) { // Tous les 10 jours
-            logSocialNetworkSnapshot();
-            }
-        }
+        usleep(100000); // 0.1 secondes
 
         time_of_day++;
         if (time_of_day >= DAY_DURATION * 2) {
             time_of_day = 0;
             day++;
+            std::cout << "----------- JOUR " << day << " -----------" << std::endl;
+            logDailyStats();
+            
+            if (day % 10 == 0) {
+                logSocialNetworkSnapshot();
+            }
+            
+            // L'évolution a lieu tous les 5 jours
+            if(day % 5 == 0 && day != last_evolution_day) {
+                evolvePopulation();
+                last_evolution_day = day; // Empêche de multiples évolutions le même jour
+                 std::cout << "----------- EVOLUTION DE LA POPULATION -----------" << std::endl;
+                 usleep(1000000); // Pause d'une seconde pour voir le message
+            }
         }
         is_day = (time_of_day < DAY_DURATION);
-
-        if((day %5) == 0 && day != 0) {
-            evolvePopulation();
-        }
     }
 
     logfile.close();
-    
+    social_logfile.close();
 }
 
 void Simulation::logDailyStats() {
     if (!logfile.is_open() || agents.empty()) {
-        return; // Ne rien faire si le fichier n'est pas ouvert ou s'il n'y a pas d'agents
+        return;
     }
 
-    // --- CALCUL DES STATISTIQUES ---
     double total_fitness = 0.0;
     double total_energie = 0.0;
     double total_satisfaction = 0.0;
@@ -238,25 +222,20 @@ void Simulation::logDailyStats() {
         total_satisfaction += agent.getSatisfaction();
     }
 
-    int taille_de_la_pop = agents.size();
-    double average_fitness = total_fitness / taille_de_la_pop;
-    double average_energie = total_energie / taille_de_la_pop;
-    double average_satisfaction = total_satisfaction / taille_de_la_pop;
+    int pop_size = agents.size();
+    double average_fitness = total_fitness / pop_size;
+    double average_energie = total_energie / pop_size;
+    double average_satisfaction = total_satisfaction / pop_size;
 
-    // --- ÉCRITURE DANS LE FICHIER ---
-    logfile 
-            << average_fitness << ","
+    logfile << average_fitness << ","
             << average_energie << ","
-            << average_satisfaction << ",";
-
-    logfile << "\n";
+            << average_satisfaction << "\n";
 }
 
 void Simulation::logSocialNetworkSnapshot() {
     if (!social_logfile.is_open()) return;
 
     for (const auto& agent : agents) {
-        // Demande à chaque agent de logger ses relations
         agent.logSocialMemory(day, social_logfile);
     }
 }

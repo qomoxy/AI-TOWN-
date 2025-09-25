@@ -1,12 +1,10 @@
 #include "monde.h"
 #include "Agent.h" 
 #include <iostream>
-#include <cstdlib> 
-#include <ctime>  
+#include <vector>
 
 Map::Map(int w, int h) : width(w), height(h) {
     grid.resize(height, std::vector<CellType>(width, CellType::EMPTY));
-    srand(time(0));
 }
 
 bool Map::isValidPosition(int x, int y) const {
@@ -26,32 +24,79 @@ void Map::setCell(int x, int y, CellType type) {
     }
 }
 
-void Map::updateWorld(bool is_day) {
-    // Pour chaque case vide, il y a une petite chance qu'un buisson repousse
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
-            if (grid[y][x] == CellType::EMPTY && (rand() % 1000) < 1) { // 0.1% de chance par tour
-                grid[y][x] = CellType::APPLE;
-            } else if(grid[y][x] == CellType::FOREST && (rand() % 1000) < 1 && !is_day) {
-                grid[y][x] = CellType::CHAMPIGNON_LUMINEUX;
-            } else if (is_day && grid[y][x] == CellType::CHAMPIGNON_LUMINEUX) {
-                grid[y][x] = CellType::FOREST;
-            }
+// Démarre un minuteur de repousse pour une case donnée
+void Map::startRegrowth(int x, int y, CellType original_food_type) {
+    if (isValidPosition(x, y)) {
+        int time = 0;
+        CellType becomes = CellType::EMPTY;
 
+        if (original_food_type == CellType::APPLE) {
+            time = 50; // Repousse plus vite
+            becomes = CellType::EMPTY;
+        } else if (original_food_type == CellType::CHAMPIGNON_LUMINEUX) {
+            time = 150; // Plus long à repousser
+            becomes = CellType::FOREST;
+        }
+
+        grid[y][x] = becomes;
+        if (time > 0) {
+            regrowth_timers[{x, y}] = FoodMeta(original_food_type, time);
         }
     }
 }
 
-void Map::generateRandomWorld() {
+// Met à jour le monde en gérant la repousse des ressources
+void Map::updateWorld(bool is_day, std::mt19937& rng) {
+    // 1. Gérer la repousse
+    for (auto it = regrowth_timers.begin(); it != regrowth_timers.end(); ) {
+        it->second.regrowth_time--;
+        if (it->second.regrowth_time <= 0) {
+            // Le temps est écoulé, la ressource réapparaît
+            setCell(it->first.first, it->first.second, it->second.type);
+            it = regrowth_timers.erase(it); // On supprime le minuteur
+        } else {
+            ++it;
+        }
+    }
+
+    // 2. Gérer le cycle jour/nuit des champignons et autres logiques
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            // Un champignon lumineux n'apparaît que la nuit sur une case de forêt
+            if (grid[y][x] == CellType::FOREST && !is_day) {
+                 std::uniform_int_distribution<int> distrib(0, 2000);
+                 if(distrib(rng) < 1) {
+                    grid[y][x] = CellType::CHAMPIGNON_LUMINEUX;
+                 }
+            // S'il fait jour, un champignon lumineux redevient une simple forêt
+            } else if (is_day && grid[y][x] == CellType::CHAMPIGNON_LUMINEUX) {
+                grid[y][x] = CellType::FOREST;
+            }
+        }
+    }
+}
+
+// Génère le monde aléatoirement en utilisant le générateur mt19937
+void Map::generateRandomWorld(std::mt19937& rng) {
+    std::uniform_int_distribution<int> dist_w(0, width - 1);
+    std::uniform_int_distribution<int> dist_h(0, height - 1);
+
     for (int i = 0; i < (width * height) / 10; ++i) {
-        grid[rand() % height][rand() % width] = CellType::FOREST;
-        grid[rand() % height][rand() % width] = CellType::WATER;
+        grid[dist_h(rng)][dist_w(rng)] = CellType::FOREST;
+        grid[dist_h(rng)][dist_w(rng)] = CellType::WATER;
     }
     for (int i = 0; i < (width * height) / 20; ++i) {
-        int x = rand() % width;
-        int y = rand() % height;
+        int x = dist_w(rng);
+        int y = dist_h(rng);
         if (grid[y][x] == CellType::EMPTY) {
             grid[y][x] = CellType::APPLE;
+        }
+    }
+     for (int i = 0; i < (width * height) / 50; ++i) {
+        int x = dist_w(rng);
+        int y = dist_h(rng);
+        if (grid[y][x] == CellType::EMPTY) {
+            grid[y][x] = CellType::BOOK;
         }
     }
 }
@@ -71,16 +116,14 @@ void Map::display(const std::vector<Agent>& agents) {
                 case CellType::ROAD:   displayGrid[y][x] = '#'; break;
                 case CellType::BOOK:   displayGrid[y][x] = 'B'; break;
                 case CellType::CHAMPIGNON_LUMINEUX: displayGrid[y][x] = 'C'; break;
-
             }
         }
     }
 
     // Placer les agents par-dessus
     for (const auto& agent : agents) {
-        std::pair<int, int> pos = agent.getPosition();
-        if (isValidPosition(pos.first, pos.second)) {
-            displayGrid[pos.second][pos.first] = agent.getSymbol();
+        if (isValidPosition(agent.getX(), agent.getY())) {
+            displayGrid[agent.getY()][agent.getX()] = agent.getSymbol();
         }
     }
 
@@ -92,3 +135,4 @@ void Map::display(const std::vector<Agent>& agents) {
         std::cout << std::endl;
     }
 }
+

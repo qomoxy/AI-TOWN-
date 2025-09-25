@@ -31,7 +31,7 @@ private:
         return 1.0 / (1.0 + std::exp(-x));
     }
 
-    double tanh_act(double x) { // Renommage pour éviter confusion avec std::tanh
+    double tanh_act(double x) { 
         return std::tanh(x);
     }
 
@@ -48,7 +48,7 @@ public:
         }
 
     void initialize_weights() {
-        std::normal_distribution<double> distribution(0, sqrt(1/input_size)); 
+        std::normal_distribution<double> distribution(0, sqrt(1.0/input_size)); 
 
         auto init_matrix = [&](int rows, int cols) {
             std::vector<std::vector<double>> matrix(rows, std::vector<double>(cols));
@@ -85,7 +85,7 @@ public:
         weights.bo = init_vector(hidden_size);
     }
 
-    // getters (Arrah)
+    // getters
     LSTM_weight getWeights() const { 
         return this->weights;
     }
