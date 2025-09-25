@@ -7,7 +7,7 @@
 // Constructeur pour un nouvel agent
 Agent::Agent(const std::string& name, unsigned int id, int startX, int startY, int input_size, int hidden_size)
     : brain(input_size, hidden_size),
-      config{name, id, 50.0, 10.0, startX, startY, '@'} // Initialisation de la struct
+      config{name, id, 70.0, 10.0, startX, startY, '@'} // Initialisation de la struct
 {}
 
 
@@ -79,7 +79,7 @@ void Agent::_eat(Map& map) {
     }
 
     if (nutrition > 0) {
-        config.satisfaction = std::min(100, config.satisfaction + 2);
+        config.satisfaction = std::min(100.0, config.satisfaction + 2.0);
         config.energie = std::min(100.0, config.energie + nutrition);
         map.startRegrowth(config.x, config.y, cell_type); // La map gère la repousse
     }

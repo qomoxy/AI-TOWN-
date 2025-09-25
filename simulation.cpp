@@ -29,12 +29,6 @@ Simulation::Simulation(int map_width, int map_height, int num_agents)
         do {
             x = dist_x(rng);
             y = dist_y(rng);
-        // On cherche une nouvelle position tant que la case est de l'eau ou déjà occupée
-            attempts++;
-            if (attempts > 1000) {
-                // Logique de secours : première position valide trouvée
-                break;
-            }
         } while (map.getCell(x, y) == CellType::WATER || occupied_positions.count({x, y}));
         
         occupied_positions.insert({x, y});
