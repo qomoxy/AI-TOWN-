@@ -104,7 +104,8 @@ Pour simuler une évolution darwinienne, un cycle de sélection a lieu tous les 
 
 Ce mécanisme permet de garantir à la fois une amélioration progressive des performances et une diversité suffisante pour éviter les optima locaux.
 La mutation est adaptative : son taux augmente si la fitness moyenne de la population stagne, afin de "secouer" l'évolution et d'éviter les optima locaux.
-### Résultats et Observations Clés
+
+## Résultats et Observations Clés
 
 Nos simulations sur de longues durées (jusqu'à 50 000 jours) nous ont permis d'observer plusieurs comportements émergents fascinants :
 
@@ -114,7 +115,7 @@ Nos simulations sur de longues durées (jusqu'à 50 000 jours) nous ont permis d
 
   - L'Émergence de la Stabilité : En ajustant les paramètres de l'environnement (coût de la vie réduit, nourriture plus abondante, gain de satisfaction en mangeant), nous avons finalement obtenu une population stable sur 50 000 jours, avec une énergie et une satisfaction moyennes positives, et un réseau social actif.
 
-Ces étapes illustrent une démarche itérative où l'analyse des résultats permet de poser de nouvelles hypothèses et d'affiner le modèle pour faire émerger des comportements plus complexes. Les fichiers ```.csv``` sont dispo.
+Ces étapes illustrent une démarche itérative où l'analyse des résultats permet de poser de nouvelles hypothèses et d'affiner le modèle pour faire émerger des comportements plus complexes. Les fichiers ```.csv``` sont dispo dans test.
 
 <img width="1253" height="930" alt="Screenshot from 2025-09-27 19-09-44" src="https://github.com/user-attachments/assets/a3c6c088-7408-446e-abb0-487b92e423a0" />
 
