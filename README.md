@@ -96,6 +96,7 @@ Avec cette fonction, un agent doit obligatoirement maintenir ses deux statistiqu
 
 
 ## Cycle d'Évolution et Sélection
+
 Pour simuler une évolution darwinienne, un cycle de sélection a lieu tous les cinq jours (temps simulé) pour créer une nouvelle génération. Les pourcentages sont ajustés pour maximiser à la fois la performance et la diversité génétique :
 - **Élitisme (10%)** : Les meilleurs agents sont conservés tels quels.
 - **Immigration (10%)** : Pour injecter de la nouveauté, 10% de la population est composée d'agents avec un cerveau totalement aléatoire.
@@ -220,7 +221,7 @@ L'ensemble de ces informations sont contenues dans le code. Voici une liste non-
   <li><b>Champignon Lumineux</b> : Pousse uniquement la nuit, donne 60 d'énergie et 2 de satisfaction. Prends 150 tours à repousser, une fois mangée la case redevient un arbre.</li>
   <li><b>Communication</b> : On a opté pour une version simplifiée qui donne 5 de satisfaction à chaque agent, et augmente leur score social de 1. On a fait le choix d'enlever toute la partie aléatoire car elle nous permet de mesurer le nombre d'interactions, donc on a simplifié. Et il ne partage plus le last_food_postion car souvent il a été consommé et l'agent en a déjà trouvé. </li>
   <li> <b>Dormir</b>: Lui faire passer le tour en échange de 25 d'énergie la nuit, mais le jour il perd 1 de pénalité sur son énergie. (La procrastination est bannie). </li>
-  <li><b>Déplacment</b> :Lui permet de bouger de 3 cases. </li>
+  <li><b>Déplacment</b> : Lui permet de bouger de 3 cases. </li>
 </ol>
 
 #### Map
