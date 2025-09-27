@@ -18,13 +18,14 @@
   <summary>Table des matières</summary>
   <ol>
     <li><a href="#contexte-et-motivation">Contexte et motivation</a></li>
-    <li><a href="#objectifs">Objectifs</a></li>
+      <li><a href="#objectifs">Objectifs</a></li>
     <li><a href="#choix-du-modèle">Choix du modèle</a></li>
     <li><a href="#lstm">LSTM</a></li>
     <li><a href="#implémentation">Implémentation</a></li>
-    <li><a href="#fitness">Fitness</a></li>
+    <li><a href="#fitness-et-itérations">Fitness et Itérations</a></li>
     <li><a href="#cycle-d'évolution-et-sélection">Cycle d'Évolution et Sélection</a></li>
-    <li><a href="#installation">Installation</a></li>
+    <li><a href="#résultats-et-observations-clés">Résultats et Observations Clés</a></li>
+    <li><a href="#pour-commencer">Pour commencer</a></li>
     <li><a href="#documentation">Documentation</a></li>
   </ol>
 </details>
@@ -76,26 +77,33 @@ L’implémentation est réalisée en C++ pour garantir rapidité et maîtrise d
 
 ## Fitness
 
-Les agents sont évalués à l'aide d'un score appelé "*fitness*", qui prend en compte deux paramètres essentiels à leur survie :
-- **Énergie** : Représente la capacité à effectuer des actions. Elle diminue lors des déplacements et augmente pendant le repos.
-- **Satisfaction** : Reflète le bien-être de l’agent dans la simulation. Elle augmente, par exemple, lorsqu’il mange.
+Les agents sont évalués à l'aide d'un score appelé "*fitness*", , qui prend en compte deux paramètres essentiels :
+- **Énergie** : Représente la capacité à effectuer des actions.
+- **Satisfaction** : Reflète le bien-être de l’agent (besoins sociaux, intellectuels).
 
-La formule utilisée est :
+Au cours de nos expériences, le choix de la fonction de fitness s'est avéré être le paramètre le plus critique. Une première approche additive a mené à un échec : l'évolution favorisait des agents inactifs avec une satisfaction élevée, mais une énergie nulle, des "cadavres satisfaits" :
 <br>
 <p align='center'><b>Fitness = énergie × w₁ + satisfaction × w₂</b></p>
 <br>
-où w₁ = 0.4 et w₂ = 0.6.
+où w₁ = 0.4 et w₂ = 0.6. 
+
+Nous avons donc opté pour une **formule multiplicative** qui lie la survie et le bien-être de manière indissociable :
+
+<p align='center'><b>Fitness = (énergie + 1) × (satisfaction + 1)</b></p>
+
+Avec cette fonction, un agent doit obligatoirement maintenir ses deux statistiques à un niveau élevé pour être considéré comme performant, ce qui a permis de résoudre le problème de la mortalité de la population.
+
+
 
 ## Cycle d'Évolution et Sélection
-
-Pour simuler une évolution darwinienne, un cycle de sélection a lieu tous les 5 jours (temps simulé) pour créer une nouvelle génération :
-- **Élitisme (10%)** : Les meilleurs agents sont conservés.
-- **Immigration (10%)** : Pour injecter de la diversité, 10% de la nouvelle population est composée d'agents totalement nouveaux avec un cerveau aléatoire.
-- **Survivants aléatoires (5%)** : Quelques agents non-élites sont conservés pour préserver le patrimoine génétique
-- **Renouvellement (85%)** : Le reste de la population est renouvelé par reproduction et mutation des agents élite sélectionnés.
+Pour simuler une évolution darwinienne, un cycle de sélection a lieu tous les cinq jours (temps simulé) pour créer une nouvelle génération. Les pourcentages sont ajustés pour maximiser à la fois la performance et la diversité génétique :
+- **Élitisme (10%)** : Les meilleurs agents sont conservés tels quels.
+- **Immigration (10%)** : Pour injecter de la nouveauté, 10% de la population est composée d'agents avec un cerveau totalement aléatoire.
+- **Survivants aléatoires (5%)** : Quelques agents non-élites sont conservés pour préserver des gènes potentiellement utiles.
+- **Renouvellement (75%)** : Le reste de la population est généré par croisement et mutation des agents sélectionnés.   
 
 Ce mécanisme permet de garantir à la fois une amélioration progressive des performances et une diversité suffisante pour éviter les optima locaux.
-La mutation est évolutive, qui a pour but de secouer la population si sa fitness moyenne reste stable.
+La mutation est adaptative : son taux augmente si la fitness moyenne de la population stagne, afin de "secouer" l'évolution et d'éviter les optima locaux.
 
 ## Pour commencer
 
@@ -120,6 +128,11 @@ La mutation est évolutive, qui a pour but de secouer la population si sa fitnes
     g++ -std=c++17 -o ai-town main.cpp agent.cpp monde.cpp simulation.cpp
     ./ai-town
     ```
+
+    Avant de lancer le projet il est conseiller de lire le ```main.cpp``` : 
+
+    - ```run()``` : Pour une simulation avec affichage graphique.
+    - ```fast_run()``` : Pour une simulation sans affichage. 
 
 ## Documentation
 
@@ -148,35 +161,38 @@ Voici la structure des fichiers sources principaux :
 
 ### Affichage 
 
-Avec la fonction run(n), vous pouvez accéder à un affichage rudimentaire de la simulation au sein de votre Terminal. Voici les différences symboles : 
+Avec la fonction ```run()```, vous pouvez accéder à un affichage de la simulation dans votre Terminal. Voici les symboles :
 
-- **@** : Agent (personnage)
+- **@** : Agent 
 - **.** : Case vide
-- **~** : Mur (non franchissable)
+- **~** : Eau (infranchissable)
 - **T** : Forêt
-- **A** : Pomme (comestible donne 20 d'énergie, 0.1% de chance de remplacer une case vide par tour)
-- **C** : Champignon lumineux (comestible donne 20 d'énergie, apparaît que la nuit, même tôt de spawn que les pommes)
-
-Le jour est affiché à chaque début d'un nouveau jour. La map est un carré de nxn.
+- **A** : Pomme (comestible)
+- **C** : Champignon lumineux (comestible, apparaît la nuit)
+- **B** : Livre (augmente la satisfaction)
 
 ### Actions et Récompenses
 
-L'agent a le choix de faire différentes actions en fonction de l'environnement qui l'entoure, il a un champ de vision de 4x4 autour de lui. Une action par tour.
-
+L'agent perçoit son environnement et choisit une action à chaque tour.
 
 <ol>
-  <li> <b>Manger</b> : Si une case avec un comestible est non loin de lui, il peut la consommer pour obtenir 20 points d'énergie.</li>
-  <li> <b>Parler</b> : Si un agent est proche, il peut lui parler pour gagner de la satisfaction. Ce gain est mutuel et dépend de leur score social réciproque : une bonne entente résulte en un gain élevé pour les deux agents, tandis qu'une mauvaise entente ne donne que peu ou pas de la satisfaction.</li>
-  <li> <b>Dormir</b> : Donne 5 énergies la nuit.</li>
-  <li> <b>Déplacement</b> : Se déplace de trois cases au max.</li>
+  <li> <b>Manger</b> : Consomme une ressource pour gagner de l'énergie et de la satisfaction.</li>
+  <li> <b>Parler</b> : Interagit avec un autre agent pour un gain de satisfaction mutuel, basé sur leur relation.</li>
+  <li> <b>Dormir</b> : Permet de regagner de l'énergie, principalement la nuit.</li>
+  <li> <b>Lire</b> : Interagir avec un livre pour un gain de satisfaction important.</li>
+  <li> <b>Se déplacer</b> : Explore la carte.</li>
 </ol>
 
-**Satisfaction** : un score qui commence à 25, qui ne peut pas dépasser 100. <br>
-**Énergie** : un score qui commence à 50, qui ne peut dépasser 100 et qui peut être négatif. A la fin de chaque tour, l'agent perd 1 point d'énergie si c'est le jour, sinon 1.5.
+**Satisfaction** : un score qui commence à 10, qui ne peut pas dépasser 100. <br>
+**Énergie** : un score qui commence à 75, qui ne peut dépasser 100 et qui peut être négatif. A la fin de chaque tour, l'agent perd 1 point d'énergie si c'est le jour, sinon 1.5.
 
 ### Données 
 
-A la fin de la simulation, un fichier .csv sera présent sous le nom de **simulation_log.csv** avec dedans des données comme la fitness moyenne, l'énergie et la satisfaction moyenne durant les jours de la simulation.
+À la fin de chaque simulation, deux fichiers ```.csv``` sont générés :
+
+- ```simulation_log.csv```. : Contient les moyennes de fitness, d'énergie et de satisfaction pour chaque jour.
+
+- ```social_log.csv``` : Enregistre toutes les interactions sociales, permettant de reconstruire et d'analyser le réseau social.
 
 ### Sources Utilisée
 
