@@ -11,7 +11,7 @@
     TIPE Cycle et boucles
     <br>
   </p>
-</div>
+</div>https://github.com/qomoxy/AI-TOWN-/edit/main/README.md
 
 <!-- TABLE OF CONTENTS -->
 <details>
@@ -104,6 +104,17 @@ Pour simuler une évolution darwinienne, un cycle de sélection a lieu tous les 
 
 Ce mécanisme permet de garantir à la fois une amélioration progressive des performances et une diversité suffisante pour éviter les optima locaux.
 La mutation est adaptative : son taux augmente si la fitness moyenne de la population stagne, afin de "secouer" l'évolution et d'éviter les optima locaux.
+### Résultats et Observations Clés
+
+Nos simulations sur de longues durées (jusqu'à 50 000 jours) nous ont permis d'observer plusieurs comportements émergents fascinants :
+
+    La Crise de Survie Initiale : La première version de la fonction de fitness a conduit à l'extinction systématique de la population, démontrant l'importance cruciale de bien définir les objectifs de l'évolution.
+
+    La Société Éphémère : Avec la fonction de fitness corrigée, la population est devenue viable. Cependant, l'analyse du réseau social a révélé une très forte mortalité et des liens sociaux faibles et rares. Les agents formaient des "paires de survie" opportunistes plutôt qu'une société structurée.
+
+    L'Émergence de la Stabilité : En ajustant les paramètres de l'environnement (coût de la vie réduit, nourriture plus abondante, gain de satisfaction en mangeant), nous avons finalement obtenu une population stable sur 50 000 jours, avec une énergie et une satisfaction moyennes positives, et un réseau social actif.
+
+Ces étapes illustrent une démarche itérative où l'analyse des résultats permet de poser de nouvelles hypothèses et d'affiner le modèle pour faire émerger des comportements plus complexes. Les fichiers ```.csv``` sont dispo.
 
 ## Pour commencer
 
@@ -129,7 +140,7 @@ La mutation est adaptative : son taux augmente si la fitness moyenne de la popul
     ./ai-town
     ```
 
-    Avant de lancer le projet il est conseiller de lire le ```main.cpp``` : 
+    Avant de lancer le projet, il est conseiller de lire le ```main.cpp``` : 
 
     - ```run()``` : Pour une simulation avec affichage graphique.
     - ```fast_run()``` : Pour une simulation sans affichage. 
@@ -194,17 +205,35 @@ L'agent perçoit son environnement et choisit une action à chaque tour.
 
 - ```social_log.csv``` : Enregistre toutes les interactions sociales, permettant de reconstruire et d'analyser le réseau social.
 
+### Info complémentaire 
+
+L'ensemble de ces informations sont contenue dans le code. Voici une liste exautif de détailles. 
+
+#### Mécanique 
+
+<ol>
+  <li><b>Pomme</b> : Donne 40 d'énergies et 2 de satisfactions. Prends 50 tours à repousser, une fois manger la casse devient vide (Empty : **.**) puis redevien une pomme.</li> 
+  <li><b>Champignon Lumineux</b> : Pousse uniquement la nuit, donne 60 d'énergie et 2 de satisfactions. Prends 150 tours à repousser, une fois manger la case redevient un arbre.</li>
+  <li><b>Communication</b> : On a opté pour une version simplifier qui donne 5 de satisfaction à chaque agent, et augmente leur score social de 1. On a fait le choix d'enelever toutes la partie aléatoire car elle nous permet de mesurer le nombre d'interaction, donc on n'as simplifier. Et il ne partage plus le last_food_postion car souvent il à était consommé et l'agent en a déjà trouver.  </li>
+  <li> <b>Dormir</b>: Lui fasser passer le tour en échange de 25 d'énergie la nuit, mais le jour il pert 1 de penalyte sur son énergie. (La procrastination est bannis). </li>
+  <li><b>Déplacment</b> : Lui permet de bouger de 3 casses. </li>
+</ol>
+
+#### Map
+
+La map fait du ```nxn``` est entièrement remplie de casse puis après les agents sont positioner sur la map, il sont placer aléatoirement sans etre sur perposé. La map est mit à jour chaque tour. Il y a 50 toures par jours, 25 de jours et 25 de nuit. 
+Le monde est génére aléatoirement. 
+
+
+
 ### Sources Utilisée
 
 Blog de Colah : https://colah.github.io/posts/2015-08-Understanding-LSTMs/
 
 ## A venir :
-Le résultat de nos observations avec des données précises et intéressantes d'une simulation.
 L'ajout d'un fichier configuration pour stocker l'ensemble des paramètres bruts, pour une meilleure lisibilité et plus simple à modifier.
-Meullier gestion de la nourriture et cases.
 
-**Peut-être** : interaction sociale négative quand elles sont ratées ou que le score est bas, et des actions antisociales comme manger la pomme d'un autre. 
-Meullier gestion de last food position
+**Peut-être** :
 Cycle de vie ou de mort avec reproduction intégrée.
 
 ---
