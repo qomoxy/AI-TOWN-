@@ -11,7 +11,7 @@
     TIPE Cycle et boucles
     <br>
   </p>
-</div>https://github.com/qomoxy/AI-TOWN-/edit/main/README.md
+</div>
 
 <!-- TABLE OF CONTENTS -->
 <details>
@@ -108,13 +108,16 @@ La mutation est adaptative : son taux augmente si la fitness moyenne de la popul
 
 Nos simulations sur de longues durées (jusqu'à 50 000 jours) nous ont permis d'observer plusieurs comportements émergents fascinants :
 
-    La Crise de Survie Initiale : La première version de la fonction de fitness a conduit à l'extinction systématique de la population, démontrant l'importance cruciale de bien définir les objectifs de l'évolution.
+  - La Crise de Survie Initiale : La première version de la fonction de fitness a conduit à l'extinction systématique de la population, démontrant l'importance cruciale de bien définir les objectifs de l'évolution.
 
-    La Société Éphémère : Avec la fonction de fitness corrigée, la population est devenue viable. Cependant, l'analyse du réseau social a révélé une très forte mortalité et des liens sociaux faibles et rares. Les agents formaient des "paires de survie" opportunistes plutôt qu'une société structurée.
+   - La Société Éphémère : Avec la fonction de fitness corrigée, la population est devenue viable. Cependant, l'analyse du réseau social a révélé une très forte mortalité et des liens sociaux faibles et rares. Les agents formaient des "paires de survie" opportunistes plutôt qu'une société structurée.
 
-    L'Émergence de la Stabilité : En ajustant les paramètres de l'environnement (coût de la vie réduit, nourriture plus abondante, gain de satisfaction en mangeant), nous avons finalement obtenu une population stable sur 50 000 jours, avec une énergie et une satisfaction moyennes positives, et un réseau social actif.
+  - L'Émergence de la Stabilité : En ajustant les paramètres de l'environnement (coût de la vie réduit, nourriture plus abondante, gain de satisfaction en mangeant), nous avons finalement obtenu une population stable sur 50 000 jours, avec une énergie et une satisfaction moyennes positives, et un réseau social actif.
 
 Ces étapes illustrent une démarche itérative où l'analyse des résultats permet de poser de nouvelles hypothèses et d'affiner le modèle pour faire émerger des comportements plus complexes. Les fichiers ```.csv``` sont dispo.
+
+<img width="1253" height="930" alt="Screenshot from 2025-09-27 19-09-44" src="https://github.com/user-attachments/assets/a3c6c088-7408-446e-abb0-487b92e423a0" />
+
 
 ## Pour commencer
 
@@ -207,22 +210,22 @@ L'agent perçoit son environnement et choisit une action à chaque tour.
 
 ### Info complémentaire 
 
-L'ensemble de ces informations sont contenue dans le code. Voici une liste exautif de détailles. 
+L'ensemble de ces informations sont contenues dans le code. Voici une liste non-exhaustive de détails.
 
 #### Mécanique 
 
 <ol>
-  <li><b>Pomme</b> : Donne 40 d'énergies et 2 de satisfactions. Prends 50 tours à repousser, une fois manger la casse devient vide (Empty : **.**) puis redevien une pomme.</li> 
-  <li><b>Champignon Lumineux</b> : Pousse uniquement la nuit, donne 60 d'énergie et 2 de satisfactions. Prends 150 tours à repousser, une fois manger la case redevient un arbre.</li>
-  <li><b>Communication</b> : On a opté pour une version simplifier qui donne 5 de satisfaction à chaque agent, et augmente leur score social de 1. On a fait le choix d'enelever toutes la partie aléatoire car elle nous permet de mesurer le nombre d'interaction, donc on n'as simplifier. Et il ne partage plus le last_food_postion car souvent il à était consommé et l'agent en a déjà trouver.  </li>
-  <li> <b>Dormir</b>: Lui fasser passer le tour en échange de 25 d'énergie la nuit, mais le jour il pert 1 de penalyte sur son énergie. (La procrastination est bannis). </li>
-  <li><b>Déplacment</b> : Lui permet de bouger de 3 casses. </li>
+  <li><b>Pomme</b> : Donne 40 d'énergie et 2 de satisfaction. Prends 50 tours à repousser, une fois mangée la casse devient vide (Empty : **.**) Puis redeviens une pomme.</li> 
+  <li><b>Champignon Lumineux</b> : Pousse uniquement la nuit, donne 60 d'énergie et 2 de satisfaction. Prends 150 tours à repousser, une fois mangée la case redevient un arbre.</li>
+  <li><b>Communication</b> : On a opté pour une version simplifiée qui donne 5 de satisfaction à chaque agent, et augmente leur score social de 1. On a fait le choix d'enlever toute la partie aléatoire car elle nous permet de mesurer le nombre d'interactions, donc on a simplifié. Et il ne partage plus le last_food_postion car souvent il a été consommé et l'agent en a déjà trouvé. </li>
+  <li> <b>Dormir</b>: Lui faire passer le tour en échange de 25 d'énergie la nuit, mais le jour il perd 1 de pénalité sur son énergie. (La procrastination est bannie). </li>
+  <li><b>Déplacment</b> :Lui permet de bouger de 3 cases. </li>
 </ol>
 
 #### Map
 
-La map fait du ```nxn``` est entièrement remplie de casse puis après les agents sont positioner sur la map, il sont placer aléatoirement sans etre sur perposé. La map est mit à jour chaque tour. Il y a 50 toures par jours, 25 de jours et 25 de nuit. 
-Le monde est génére aléatoirement. 
+La map fait du ```nxn``` est entièrement remplie de casse, puis les agents sont positionnés sur la map, ils sont placés aléatoirement sans être surperposés. La map est mise à jour chaque tour. Il y a 50 tours par jour, 25 de jour et 25 de nuit. 
+Le monde est généré aléatoirement.
 
 
 
