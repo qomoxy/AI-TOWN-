@@ -32,7 +32,7 @@
 
 ## Contexte et motivation
 
-Dans un monde où le numérique occupe une place centrale, l’intelligence artificielle (IA) suscite un intérêt croissant. Ce projet vise à explorer comment une population d’agents virtuels évolue et interagit dans un environnement social simulé. L’objectif est de comprendre les dynamiques sociales et comportementales qui émergent de ces interactions, tout en abordant les enjeux liés à la modélisation de l’intelligence artificielle.
+Dans un monde où le numérique occupe une place centrale, l’intelligence artificielle (IA) suscite un intérêt croissant. Ce projet vise à explorer comment une population d’agents virtuels évolue et interagit dans un environnement social simulé. L’objectif est de comprendre les dynamiques sociales et comportementales qui émergent de ces interactions, tout en abordant les enjeux liés à la modélisation de l’intelligence artificielle. Ce projet aborde le thème 'Cycle et boucles' à travers le cycle d'évolution darwinienne (sélection, reproduction) et les boucles de rétroaction du réseau de neurones récurrents (LSTM) qui gèrent la mémoire et la prise de décision des agents.
 
 ## Objectifs
 
@@ -92,6 +92,7 @@ Nous avons donc opté pour une **formule multiplicative** qui lie la survie et l
 <p align='center'><b>Fitness = (énergie + 1) × (satisfaction + 1)</b></p>
 
 Avec cette fonction, un agent doit obligatoirement maintenir ses deux statistiques à un niveau élevé pour être considéré comme performant, ce qui a permis de résoudre le problème de la mortalité de la population.
+Le <b>+1</b> a été ajouté à chaque paramètre pour garantir que la fitness reste positive ou nulle, et pour éviter qu'une énergie ou une satisfaction nulle ne coupe instantanément toute chance de survie, forçant ainsi l'agent à maintenir un niveau minimal dans les deux statistiques.
 
 
 
@@ -119,6 +120,8 @@ Nos simulations sur de longues durées (jusqu'à 50 000 jours) nous ont permis d
 Ces étapes illustrent une démarche itérative où l'analyse des résultats permet de poser de nouvelles hypothèses et d'affiner le modèle pour faire émerger des comportements plus complexes. Les fichiers ```.csv``` sont dispo dans test.
 
 <img width="1253" height="930" alt="Screenshot from 2025-09-27 19-09-44" src="https://github.com/user-attachments/assets/a3c6c088-7408-446e-abb0-487b92e423a0" />
+
+Figure 1: Évolution des relation (ligne bleue) entre les agents sur 50 000 jours, illustrant leur liens.
 
 
 ## Pour commencer
@@ -217,7 +220,7 @@ L'ensemble de ces informations sont contenues dans le code. Voici une liste non-
 #### Mécanique 
 
 <ol>
-  <li><b>Pomme</b> : Donne 40 d'énergie et 2 de satisfaction. Prends 50 tours à repousser, une fois mangée la casse devient vide (Empty : **.**) Puis redeviens une pomme.</li> 
+  <li><b>Pomme</b> : Donne 40 d'énergie et 2 de satisfaction. Prends 50 tours à repousser, une fois mangée la casse devient vide (Empty : <b>.</b>) Puis redeviens une pomme.</li> 
   <li><b>Champignon Lumineux</b> : Pousse uniquement la nuit, donne 60 d'énergie et 2 de satisfaction. Prends 150 tours à repousser, une fois mangée la case redevient un arbre.</li>
   <li><b>Communication</b> : On a opté pour une version simplifiée qui donne 5 de satisfaction à chaque agent, et augmente leur score social de 1. On a fait le choix d'enlever toute la partie aléatoire car elle nous permet de mesurer le nombre d'interactions, donc on a simplifié. Et il ne partage plus le last_food_postion car souvent il a été consommé et l'agent en a déjà trouvé. </li>
   <li> <b>Dormir</b>: Lui faire passer le tour en échange de 25 d'énergie la nuit, mais le jour il perd 1 de pénalité sur son énergie. (La procrastination est bannie). </li>
