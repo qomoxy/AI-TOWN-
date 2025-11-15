@@ -24,7 +24,7 @@ std::vector<double> Agent::perceive(const Map& map, const std::vector<Agent>& al
     if(last_known_food_pos.has_value()) {
         int dx = last_known_food_pos->first - config.x;
         int dy = last_known_food_pos->second - config.y;
-        perception_vector.push_back(std::sqrt(dx*dx + dy*dy) / 10.0); // Distance normalisée
+        perception_vector.push_back(std::sqrt(dx*dx + dy*dy) /  MAX_DISTANCE); // Distance normalisée
         perception_vector.push_back(std::atan2(dy, dx) / M_PI); // Angle normalisé (-1 à 1)
     } else {
         perception_vector.push_back(0.0); // Pas d'info
@@ -41,7 +41,7 @@ std::vector<double> Agent::perceive(const Map& map, const std::vector<Agent>& al
             if (map.isValidPosition(current_x, current_y)) {
                 perception_vector.push_back(static_cast<double>(map.getCell(current_x, current_y)) / MAX_DISTANCE);
             } else {
-                perception_vector.push_back(static_cast<double>(CellType::WATER) / 10.0); // Hors de la carte = eau
+                perception_vector.push_back(static_cast<double>(CellType::WATER) /  MAX_DISTANCE); // Hors de la carte = eau
             }
 
             // Info 2: Présence d'un agent
