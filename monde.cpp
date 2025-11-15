@@ -102,7 +102,7 @@ void Map::generateRandomWorld(std::mt19937& rng) {
 }
 
 void Map::display(const std::vector<Agent>& agents) {
-    system("clear"); // ou "cls" sur Windows
+    std::cout << "\033[2J\033[1;1H";
     std::vector<std::vector<char>> displayGrid(height, std::vector<char>(width));
 
     for (int y = 0; y < height; ++y) {
