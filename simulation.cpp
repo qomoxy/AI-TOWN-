@@ -20,7 +20,7 @@ Simulation::Simulation(int map_width, int map_height, int num_agents)
     std::set<std::pair<int, int>> occupied_positions; // Pour éviter les superpositions
 
     // Taille du vecteur de perception. DOIT correspondre à la logique dans Agent::perceive
-    // 2 (stats) + 2 (food_info) + (7x7 * 2) (vision grille) = 102
+
     int input_size = Agent::PERCEPTION_SIZE;
     int hidden_size = 8; // La taille de la couche cachée/sortie du LSTM
 
@@ -85,11 +85,40 @@ void Simulation::evolvePopulation() {
     std::vector<Agent> next_generation;
     next_generation.reserve(current_pop_size);
 
+    // 1) Élitisme
     for (int i = 0; i < elite_count; ++i) {
         next_generation.push_back(agents[i]);
     }
+
+    // 2) Survivants aléatoires
     for (int i = 0; i < random_survivors; ++i) {
         next_generation.push_back(agents[dist_idx(rng)]);
+    }
+
+    // 3) Immigration (Nouveaux agents aléatoires)
+    // On récupère les tailles du cerveau depuis un agent existant
+    int input_size = agents[0].getBrain().getInputSize();
+    int hidden_size = agents[0].getBrain().getHiddenSize();
+
+    for (int i = 0; i < newcomers_count; ++i) {
+        int startX, startY;
+        // On s'assure qu'ils n'apparaissent pas dans l'eau
+        do {
+            startX = dist_x(rng);
+            startY = dist_y(rng);
+        } while (map.getCell(startX, startY) == CellType::WATER);
+
+        unsigned int newId = static_cast<unsigned int>(day * 10000 + next_generation.size());
+        
+        // On crée un nouvel agent avec un cerveau initialisé aléatoirement
+        next_generation.emplace_back(
+            "Agent_New_" + std::to_string(newId), 
+            newId, 
+            startX, 
+            startY, 
+            input_size, 
+            hidden_size
+        );
     }
 
     // --- fonction de sélection de parents : tournoi (k = 3) ---
