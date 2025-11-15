@@ -43,6 +43,7 @@ private:
 public:
 
     static const int PERCEPTION_SIZE = 102;
+    const double MAX_DISTANCE = 44.72; // sqrt(40*40 + 20*20)
     
     // Constructeur 
     Agent(const std::string& name, unsigned int id, int startX, int startY, int input_size, int hidden_size);
