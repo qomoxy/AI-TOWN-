@@ -1,6 +1,8 @@
 const int apple_nutrition = 40;
 const int champ_nutrition = 60;
 
+const double SOCIAL_FACTOR = 0.5;
+
 // Coût de base des actions, pour ne pas avoir de "magie" dans le code
 const double EAT_COST = 0.0;
 const double TALK_COST = 1.0;
@@ -15,3 +17,5 @@ int regrowth_apple = 50;
 int regrowth_champ = 150;
 const int DAY_DURATION = 50;
 const nb_of_days = 50000;
+
+double gain_satisfaction = std::max(1.0, 3.0 + (score_with_target * SOCIAL_FACTOR));
