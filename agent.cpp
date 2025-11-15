@@ -14,7 +14,7 @@ Agent::Agent(const std::string& name, unsigned int id, int startX, int startY, i
 // L'agent observe son environnement et le transforme en vecteur pour son cerveau
 std::vector<double> Agent::perceive(const Map& map, const std::vector<Agent>& all_agents, bool is_day) {
     std::vector<double> perception_vector;
-    perception_vector.reserve(102); // Pré-allocation pour la performance
+    perception_vector.reserve(151); // Pré-allocation pour la performance
     
     // 1. Ajout des états internes (2 valeurs)
     perception_vector.push_back(config.energie / 100.0);
@@ -39,22 +39,25 @@ std::vector<double> Agent::perceive(const Map& map, const std::vector<Agent>& al
 
             // Info 1: Type de la case
             if (map.isValidPosition(current_x, current_y)) {
-                perception_vector.push_back(static_cast<double>(map.getCell(current_x, current_y)) / MAX_DISTANCE);
+                perception_vector.push_back(static_cast<double>(map.getCell(current_x, current_y)) / 10.0);
             } else {
-                perception_vector.push_back(static_cast<double>(CellType::WATER) /  MAX_DISTANCE); // Hors de la carte = eau
+                perception_vector.push_back(static_cast<double>(CellType::WATER) /  10.0); // Hors de la carte = eau
             }
 
             // Info 2: Présence d'un agent
             bool agent_found = false;
+            double social_score = 0.0;
             if (dx != 0 || dy != 0) { // Ne pas se détecter soi-même
                 for (const auto& other : all_agents) {
                     if (other.getX() == current_x && other.getY() == current_y) {
                         agent_found = true;
+                        social_score = std::tanh(getSocialScoreFor(other.getId()) / 5.0);
                         break;
                     }
                 }
             }
             perception_vector.push_back(agent_found ? 1.0 : 0.0);
+            perception_vector.push_back(social_score);
         }
     }
     return perception_vector;
@@ -149,8 +152,10 @@ void Agent::act(const std::vector<double>& decision_vector, Map& map, std::vecto
             {
                 Agent* target = _findNearbyAgent(all_agents);
                 if (target) {
-                    addSatisfaction(5.0);
-                    target->addSatisfaction(5.0);
+                    int score_with_target = getSocialScoreFor(target->getId());
+                    double gain_satisfaction = std::max(1.0, 3.0 + (score_with_target / 2.0));
+                    addSatisfaction(gain_satisfaction);
+                    target->addSatisfaction(gain_satisfaction);
                     updateSocialScoreFor(target->getId(), 1);
                     target->updateSocialScoreFor(this->getId(), 1);
                 }
