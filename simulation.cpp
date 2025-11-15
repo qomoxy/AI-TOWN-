@@ -164,7 +164,6 @@ void Simulation::fast_run() {
             agent.act(decision, map, agents, is_day, rng);
         }
 
-        // --- Étape de sélection et nettoyage (à ajouter) ---
         agents.erase(
             std::remove_if(agents.begin(), agents.end(), 
             [](const Agent& a) { return a.getEnergie() <= 0; }),
@@ -205,6 +204,11 @@ void Simulation::run() {
             std::vector<double> decision = agent.think(perception);
             agent.act(decision, map, agents, is_day, rng);
         }
+
+         agents.erase(
+            std::remove_if(agents.begin(), agents.end(), 
+            [](const Agent& a) { return a.getEnergie() <= 0; }),
+         agents.end());  
         
         map.updateWorld(is_day, rng);
         map.display(agents);
