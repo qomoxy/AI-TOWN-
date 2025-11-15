@@ -39,7 +39,7 @@ std::vector<double> Agent::perceive(const Map& map, const std::vector<Agent>& al
 
             // Info 1: Type de la case
             if (map.isValidPosition(current_x, current_y)) {
-                perception_vector.push_back(static_cast<double>(map.getCell(current_x, current_y)) / 10.0);
+                perception_vector.push_back(static_cast<double>(map.getCell(current_x, current_y)) / MAX_DISTANCE);
             } else {
                 perception_vector.push_back(static_cast<double>(CellType::WATER) / 10.0); // Hors de la carte = eau
             }
