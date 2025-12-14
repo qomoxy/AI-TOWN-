@@ -69,12 +69,12 @@ void Simulation::evolvePopulation() {
         prev_avg_fitness = avg_fitness;
     }
 
-    double mutation_rate = (stagnant_generations >= 5) ? 0.25 : 0.1;
+    double mutation_rate = (stagnant_generations >= STAGNATION_THRESHOLD) ? MUTATION_RATE_HIGH : MUTATION_RATE_NORMAL;
 
     // --- paramètres de la sélection ---
-    int elite_count = std::max(1, current_pop_size / 10);
-    int random_survivors = std::max(1, current_pop_size / 20);
-    int newcomers_count = std::max(1, current_pop_size / 10);
+    int elite_count = std::max(1, current_pop_size * RATIO_ELITE);
+    int random_survivors = std::max(1, current_pop_size * RATIO_RANDOM_SURVIVORS);
+    int newcomers_count = std::max(1, current_pop_size * RATIO_NEWCOMERS);
 
     // distributions utiles
     std::uniform_int_distribution<int> dist_idx(0, current_pop_size - 1);
@@ -160,7 +160,7 @@ void Simulation::evolvePopulation() {
 
 void Simulation::fast_run() {
     int last_evolution_day = 0;
-    while(day < 50000) {
+    while(day < MAX_DAYS) {
         
         for (auto& agent : agents) {
             std::vector<double> perception = agent.perceive(map, agents, is_day);
@@ -186,7 +186,7 @@ void Simulation::fast_run() {
             }
 
             // L'évolution a lieu tous les 5 jours
-            if(day % 5 == 0 && day != last_evolution_day) {
+            if(day % EVOLUTION_PERIOD == 0 && day != last_evolution_day) {
                 evolvePopulation();
                 last_evolution_day = day;
             }
@@ -201,7 +201,7 @@ void Simulation::fast_run() {
 
 void Simulation::run() {
     int last_evolution_day = 0;
-    while (day < 500) {
+    while (day < MAX_DAYS) {
         
         for (auto& agent : agents) {
             std::vector<double> perception = agent.perceive(map, agents, is_day);
@@ -230,7 +230,7 @@ void Simulation::run() {
             }
             
             // L'évolution a lieu tous les 5 jours
-            if(day % 5 == 0 && day != last_evolution_day) {
+            if(day % EVOLUTION_PERIOD == 0 && day != last_evolution_day) {
                 evolvePopulation();
                 last_evolution_day = day; // Empêche de multiples évolutions le même jour
                  std::cout << "----------- EVOLUTION DE LA POPULATION -----------" << std::endl;
