@@ -46,7 +46,11 @@ Simulation::Simulation(int map_width, int map_height, int num_agents)
 }
 
 void Simulation::evolvePopulation() {
-    if (agents.empty()) return;
+    if (agents.empty()) {
+        // Optionnel : repeupler artificiellement si tout le monde est mort
+        std::cout << "Extinction totale. Fin de la simulation ou repeuplement d'urgence." << std::endl;
+        return; 
+    }
 
     const int current_pop_size = (int)agents.size();
 
