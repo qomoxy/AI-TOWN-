@@ -80,5 +80,9 @@ public:
     // Évolution
     void mutateBrain(double mutationRate);
     Agent breedWith(const Agent& partner, const std::string& childName, unsigned int childId, int startX, int startY) const;
+
+    void saveBrain(const std::string& filename) const {
+    brain.saveBrain(filename);
+    }
 };
 
