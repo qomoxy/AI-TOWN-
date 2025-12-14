@@ -18,7 +18,7 @@
   <summary>Table des matières</summary>
   <ol>
     <li><a href="#contexte-et-motivation">Contexte et motivation</a></li>
-      <li><a href="#objectifs">Objectifs</a></li>
+    <li><a href="#objectifs">Objectifs</a></li>
     <li><a href="#choix-du-modèle">Choix du modèle</a></li>
     <li><a href="#lstm">LSTM</a></li>
     <li><a href="#implémentation">Implémentation</a></li>
@@ -70,16 +70,23 @@ Ce mécanisme permet de modéliser des comportements séquentiels et d’intégr
 ## Implémentation
 
 L’implémentation est réalisée en C++ pour garantir rapidité et maîtrise de la mémoire.
-- Traduction des équations mathématiques des LSTM en code C++ optimisé.
-- Création d’agents virtuels intégrant un réseau LSTM pour la prise de décision et l’apprentissage.
-- Développement d’un environnement simulé permettant l’observation et l’analyse des interactions sociales.
-- Tests et validations pour assurer la robustesse et la fiabilité du modèle.
+- **Moteur LSTM :** Traduction des équations mathématiques en code C++ optimisé (vecteurs, matrices).
+- **Architecture Modulaire :** Séparation claire entre le Cerveau (`LSTM`), le Corps (`Agent`) et le Monde (`Map`).
+- **Configuration Centralisée :** Utilisation d'un fichier `SimulationConfig.h` regroupant tous les paramètres (coûts énergétiques, taux de mutation...) pour faciliter l'expérimentation scientifique.
+
+## Optimisation de la Vision (Modélisation)
+
+Contrairement à une approche classique "pixel par pixel" qui aurait nécessité un réseau trop lourd (151 entrées, non fonctionel car testé), nous avons opté pour une **vision relative simplifiée** (11 entrées) inspirée de la biologie :
+- L'agent perçoit la distance et l'angle de la nourriture et des congénères les plus proches.
+- Il possède une proprioception (énergie, satisfaction).
+- Cette réduction de dimensionnalité permet une convergence beaucoup plus rapide de l'apprentissage.
 
 ## Fitness
 
-Les agents sont évalués à l'aide d'un score appelé "*fitness*", , qui prend en compte deux paramètres essentiels :
-- **Énergie** : Représente la capacité à effectuer des actions.
-- **Satisfaction** : Reflète le bien-être de l’agent (besoins sociaux, intellectuels).
+Les agents sont évalués à l'aide d'un score de "*fitness*", prenant en compte deux paramètres essentiels :
+- **Énergie** : Capacité à effectuer des actions (manger, bouger).
+- **Satisfaction** : Bien-être social et intellectuel.
+
 
 Au cours de nos expériences, le choix de la fonction de fitness s'est avéré être le paramètre le plus critique. Une première approche additive a mené à un échec : l'évolution favorisait des agents inactifs avec une satisfaction élevée, mais une énergie nulle, des "cadavres satisfaits" :
 <br>
@@ -98,35 +105,34 @@ Le <b>+1</b> a été ajouté à chaque paramètre pour garantir que la fitness r
 
 ## Cycle d'Évolution et Sélection
 
-Pour simuler une évolution darwinienne, un cycle de sélection a lieu tous les cinq jours (temps simulé) pour créer une nouvelle génération. Les pourcentages sont ajustés pour maximiser à la fois la performance et la diversité génétique :
-- **Élitisme (10%)** : Les meilleurs agents sont conservés tels quels.
-- **Immigration (10%)** : Pour injecter de la nouveauté, 10% de la population est composée d'agents avec un cerveau totalement aléatoire.
-- **Survivants aléatoires (5%)** : Quelques agents non-élites sont conservés pour préserver des gènes potentiellement utiles.
-- **Renouvellement (75%)** : Le reste de la population est généré par croisement et mutation des agents sélectionnés.   
+Un cycle de sélection a lieu périodiquement (tous les 5 jours) pour créer une nouvelle génération. La stratégie de reproduction inclut :
+- **Élitisme** : Conservation des meilleurs agents.
+- **Immigration** : Injection d'agents aléatoires pour maintenir la diversité génétique.
+- **Crossover** : Reproduction sexuée mélangeant les poids synaptiques de deux parents.
+- **Mutation Adaptative** : Le taux de mutation augmente si la fitness moyenne de la population stagne, permettant de sortir des optima locaux.
 
 Ce mécanisme permet de garantir à la fois une amélioration progressive des performances et une diversité suffisante pour éviter les optima locaux.
 La mutation est adaptative : son taux augmente si la fitness moyenne de la population stagne, afin de "secouer" l'évolution et d'éviter les optima locaux.
 
-## Résultats et Observations Clés
+Nos simulations (jusqu'à 50 000 jours) ont permis d'observer :
 
-Nos simulations sur de longues durées (jusqu'à 50 000 jours) nous ont permis d'observer plusieurs comportements émergents fascinants :
-
-  - La Crise de Survie Initiale : La première version de la fonction de fitness a conduit à l'extinction systématique de la population, démontrant l'importance cruciale de bien définir les objectifs de l'évolution.
-
-   - La Société Éphémère : Avec la fonction de fitness corrigée, la population est devenue viable. Cependant, l'analyse du réseau social a révélé une très forte mortalité et des liens sociaux faibles et rares. Les agents formaient des "paires de survie" opportunistes plutôt qu'une société structurée.
-
-  - L'Émergence de la Stabilité : En ajustant les paramètres de l'environnement (coût de la vie réduit, nourriture plus abondante, gain de satisfaction en mangeant), nous avons finalement obtenu une population stable sur 50 000 jours, avec une énergie et une satisfaction moyennes positives, et un réseau social actif.
+1.  **La Crise de Survie :** Extinction rapide lors des premiers tests, soulignant la difficulté de l'environnement.
+2.  **L'Émergence Sociale :** Avec la fitness multiplicative, les agents ont appris à former des "paires de survie" pour maximiser leur satisfaction.
+3.  **La Visualisation du Cerveau :** Grâce à nos outils d'analyse (`visu_cerveau.py`), nous pouvons générer des *Heatmaps* de décision montrant comment l'agent arbitre entre "Manger" et "Dormir" selon son niveau d'énergie.
 
 Ces étapes illustrent une démarche itérative où l'analyse des résultats permet de poser de nouvelles hypothèses et d'affiner le modèle pour faire émerger des comportements plus complexes. Les fichiers ```.csv``` sont dispo dans test.
 
-<img width="1253" height="930" alt="Screenshot from 2025-09-27 19-09-44" src="https://github.com/user-attachments/assets/a3c6c088-7408-446e-abb0-487b92e423a0" />
 
-Figure 1: Évolution des relation (ligne bleue) entre les agents sur 50 000 jours, illustrant leur liens.
+<img width="1253" height="930" alt="Graphe Social" src="https://github.com/user-attachments/assets/a3c6c088-7408-446e-abb0-487b92e423a0" />
+*(Figure 1: Évolution des relations sociales entre les agents sur 50 000 jours)*
 
 
 ## Pour commencer
 
 ### Prérequis
+
+- **C++** : Compilateur supportant C++17 (`g++`, `clang++`).
+- **Python 3** : Pour les scripts d'analyse (`pandas`, `matplotlib`, `networkx`, `seaborn`).
 
 - Un compilateur C++ supportant la norme C++17 (ex: g++, clang++) :
   ```shell
@@ -146,6 +152,13 @@ Figure 1: Évolution des relation (ligne bleue) entre les agents sur 50 000 jour
     ```shell
     g++ -std=c++17 -o ai-town main.cpp agent.cpp monde.cpp simulation.cpp
     ./ai-town
+    ```
+
+3.  **Analyser les résultats :**
+    À la fin de la simulation, lancez les scripts Python pour générer les courbes et visualiser le cerveau du meilleur agent :
+    ```shell
+    python3 analyse.py      # Génère courbes_stats.png et analyse le réseau social
+    python3 visu_cerveau.py # Génère la Heatmap de décision (nécessite best_brain.txt)
     ```
 
     Avant de lancer le projet, il est conseiller de lire le ```main.cpp``` : 
@@ -177,6 +190,17 @@ Voici la structure des fichiers sources principaux :
 - **LSTM.h** : Implémentation du réseau de neurones LSTM.
 - **monde.h / monde.cpp** : Gestion de l’environnement virtuel.
 - **simulation.h / simulation.cpp** : Logique de la simulation.
+
+
+### Paramétrage (`SimulationConfig.h`)
+
+Au sein de ce fichier vous pouvez modifier l'ensemble des paramètres et règles de l'univers. Nous avons séparer et trier l'ensemble par différentes catégories : 
+
+- **PARAMÈTRES GLOBAUX DE LA SIMULATION** : Calculs automatiques, Dimensions & Durée.
+- **PARAMÈTRES DU RÉSEAU DE NEURONES (LSTM)**
+- **PARAMÈTRES DES AGENTS** : Coûts des actions, Gains, Communication.
+- **PARAMÈTRES DU MONDE (Génération & Repousse)** : Probabilité d'apparition, Ratios de génération.
+- **PARAMÈTRES D'ÉVOLUTION (Génétique)** : Mutation, Sélection.
 
 ### Affichage 
 
@@ -229,7 +253,7 @@ L'ensemble de ces informations sont contenues dans le code. Voici une liste non-
 
 #### Map
 
-La map fait du ```nxn``` est entièrement remplie de casse, puis les agents sont positionnés sur la map, ils sont placés aléatoirement sans être surperposés. La map est mise à jour chaque tour. Il y a 50 tours par jour, 25 de jour et 25 de nuit. 
+La map fait du ```hxw``` est entièrement remplie de casse, puis les agents sont positionnés sur la map, ils sont placés aléatoirement sans être surperposés. La map est mise à jour chaque tour. Il y a 50 tours par jour, 25 de jour et 25 de nuit. 
 Le monde est généré aléatoirement.
 
 
@@ -239,7 +263,7 @@ Le monde est généré aléatoirement.
 Blog de Colah : https://colah.github.io/posts/2015-08-Understanding-LSTMs/
 
 ## A venir :
-L'ajout d'un fichier configuration pour stocker l'ensemble des paramètres bruts, pour une meilleure lisibilité et plus simple à modifier.
+???
 
 **Peut-être** :
 Cycle de vie ou de mort avec reproduction intégrée.
