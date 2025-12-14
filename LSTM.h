@@ -19,7 +19,8 @@ private:
     int input_size;
     int hidden_size;
 
-    
+    std::mt19937 generator;
+
     LSTM_weight weights;
 
     // États cachés
@@ -40,8 +41,9 @@ public:
     std::default_random_engine generator; 
 
 
-    LSTM(int input_size, int hidden_size) 
+    LSTM(int input_size, int hidden_size, unsigned int seed) 
         : input_size(input_size), hidden_size(hidden_size) {
+            generator.seed(seed);
             h_prev = std::vector<double>(hidden_size, 0.0);
             c_prev = std::vector<double>(hidden_size, 0.0);
             initialize_weights();
