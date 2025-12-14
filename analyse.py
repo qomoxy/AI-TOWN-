@@ -91,7 +91,50 @@ def analyze_social_network(log_file="social_log.csv"):
     plt.show()
 
 
+def plot_simulation_stats(log_file="simulation_log.csv"):
+    try:
+        df = pd.read_csv(log_file)
+    except FileNotFoundError:
+        print(f"Fichier {log_file} introuvable.")
+        return
+
+    # Lissage des courbes (moyenne glissante) pour plus de lisibilité
+    window = 50 
+    
+    plt.figure(figsize=(15, 10))
+
+    # 1. Fitness
+    plt.subplot(3, 1, 1)
+    plt.plot(df['fitness_moyen'], label='Fitness Moyenne', color='purple', alpha=0.3)
+    plt.plot(df['fitness_moyen'].rolling(window=window).mean(), label=f'Moyenne glissante ({window}j)', color='purple', linewidth=2)
+    plt.title("Évolution de la Fitness")
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+
+    # 2. Énergie
+    plt.subplot(3, 1, 2)
+    plt.plot(df['energie_moyenne'], label='Énergie Moyenne', color='orange', alpha=0.3)
+    plt.plot(df['energie_moyenne'].rolling(window=window).mean(), color='orange', linewidth=2)
+    plt.axhline(y=0, color='r', linestyle='--', label="Mort")
+    plt.title("Évolution de l'Énergie")
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+
+    # 3. Satisfaction
+    plt.subplot(3, 1, 3)
+    plt.plot(df['satisfaction_moyenne'], label='Satisfaction Moyenne', color='green', alpha=0.3)
+    plt.plot(df['satisfaction_moyenne'].rolling(window=window).mean(), color='green', linewidth=2)
+    plt.title("Évolution de la Satisfaction")
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    plt.savefig("courbes_stats.png") # Sauvegarde l'image
+    print("Courbes sauvegardées dans 'courbes_stats.png'")
+    plt.show()
+
+
 if __name__ == "__main__":
     analyze_social_network()
-
+    plot_simulation_stats()
 
