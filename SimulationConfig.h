@@ -1,3 +1,6 @@
+#pragma once
+#include <algorithm>
+
 const int apple_nutrition = 40;
 const int champ_nutrition = 60;
 
@@ -13,9 +16,7 @@ const double LIVING_COST = 0.5;
 static const int VISION_RANGE = 3;
 static const int PERCEPTION_SIZE = 151;
 const double MAX_DISTANCE = 44.72; // sqrt(40*40 + 20*20)
-int regrowth_apple = 50;
-int regrowth_champ = 150;
+const int regrowth_apple = 50;
+const int regrowth_champ = 150;
 const int DAY_DURATION = 50;
-const nb_of_days = 50000;
-
-double gain_satisfaction = std::max(1.0, 3.0 + (score_with_target * SOCIAL_FACTOR));
+const int  nb_of_days = 50000;
