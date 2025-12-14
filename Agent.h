@@ -42,7 +42,7 @@ private:
 
 public:
 
-    static const int PERCEPTION_SIZE = 151;
+    static const int PERCEPTION_SIZE = 11;
     const double MAX_DISTANCE = 44.72; // sqrt(40*40 + 20*20)
     
     // Constructeur 
