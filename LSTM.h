@@ -5,6 +5,7 @@
 #include <random>
 #include <algorithm>
 #include <tuple>
+#include <fstream>
 
 // La structure pour contenir tous les poids du LSTM
 struct LSTM_weight { 
@@ -250,4 +251,30 @@ public:
 
         return child;
     }
+
+void saveBrain(const std::string& filename) const {
+    std::ofstream file(filename);
+    if (!file.is_open()) return;
+
+    file << input_size << " " << hidden_size << "\n";
+
+    auto print_matrix = [&](const std::vector<std::vector<double>>& m) {
+        for (const auto& row : m) {
+            for (double val : row) file << val << " ";
+            file << "\n";
+        }
+    };
+    auto print_vector = [&](const std::vector<double>& v) {
+        for (double val : v) file << val << " ";
+        file << "\n";
+    };
+
+    // Ordre important pour la lecture en Python
+    print_matrix(weights.Wf); print_matrix(weights.Wi); print_matrix(weights.Wc); print_matrix(weights.Wo);
+    print_matrix(weights.Uf); print_matrix(weights.Ui); print_matrix(weights.Uc); print_matrix(weights.Uo);
+    print_vector(weights.bf); print_vector(weights.bi); print_vector(weights.bc); print_vector(weights.bo);
+    
+    file.close();
+}
+
 };
