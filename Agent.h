@@ -1,6 +1,7 @@
 #pragma once
 #include "LSTM.h"
 #include "monde.h"
+#include "SimulationConfig.h"
 #include <string>
 #include <vector>
 #include <utility> 
@@ -23,8 +24,6 @@ struct AgentConfig {
 
 class Agent {
 private:
-    // Constante pour la vision, garantit une taille de perception fixe
-    static const int VISION_RANGE = 3;
 
     LSTM brain;
     
@@ -41,9 +40,6 @@ private:
     Agent* _findNearbyAgent(std::vector<Agent>& all_agents);
 
 public:
-
-    static const int PERCEPTION_SIZE = 11;
-    const double MAX_DISTANCE = 44.72; // sqrt(40*40 + 20*20)
     
     // Constructeur 
     Agent(const std::string& name, unsigned int id, int startX, int startY, int input_size, int hidden_size);
