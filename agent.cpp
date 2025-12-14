@@ -6,8 +6,8 @@
 
 // Constructeur pour un nouvel agent
 Agent::Agent(const std::string& name, unsigned int id, int startX, int startY, int input_size, int hidden_size)
-    : brain(input_size, hidden_size),
-      config{name, id, 70.0, 10.0, startX, startY, '@'} // Initialisation de la struct
+    : brain(input_size, hidden_size, id + std::random_device{}()), // On utilise l'ID + entropy pour varier
+      config{name, id, 70.0, 10.0, startX, startY, '@'} 
 {}
 
 
