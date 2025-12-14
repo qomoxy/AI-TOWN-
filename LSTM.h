@@ -216,8 +216,10 @@ public:
 
         auto breed_vector = [&](const std::vector<double>& v1, const std::vector<double>& v2) {
             std::vector<double> result(v1.size());
+            std::uniform_int_distribution<int> rand_parent(0, 1);
+            
             for (size_t i = 0; i < v1.size(); ++i) {
-                result[i] = (v1[i] + v2[i]) / 2.0;
+                result[i] = (rand_parent(generator) == 0) ? v1[i] : v2[i];
             }
             return result;
         };
