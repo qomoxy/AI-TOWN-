@@ -38,9 +38,6 @@ private:
 
 public:
 
-    std::default_random_engine generator; 
-
-
     LSTM(int input_size, int hidden_size, unsigned int seed) 
         : input_size(input_size), hidden_size(hidden_size) {
             generator.seed(seed);
