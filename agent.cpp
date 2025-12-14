@@ -12,55 +12,92 @@ Agent::Agent(const std::string& name, unsigned int id, int startX, int startY, i
 
 
 // L'agent observe son environnement et le transforme en vecteur pour son cerveau
-std::vector<double> Agent::perceive(const Map& map, const std::vector<Agent>& all_agents, bool is_day) {
-    std::vector<double> perception_vector;
-    perception_vector.reserve(151); // Pré-allocation pour la performance
-    
-    // 1. Ajout des états internes (2 valeurs)
-    perception_vector.push_back(config.energie / 100.0);
-    perception_vector.push_back(config.satisfaction / 100.0);
+// Dans agent.cpp
 
-    // 2. Ajout des informations sur la nourriture connue (2 valeurs)
+std::vector<double> Agent::perceive(const Map& map, const std::vector<Agent>& all_agents, bool is_day) {
+    std::vector<double> inputs;
+    inputs.reserve(Agent::PERCEPTION_SIZE);
+
+    // --- 1. État Interne (2 neurones) ---
+    inputs.push_back(config.energie / 100.0);
+    inputs.push_back(config.satisfaction / 100.0);
+
+    // --- 2. Mémoire (2 neurones) ---
+    // (Inchangé : on garde la mémoire de la dernière nourriture vue)
     if(last_known_food_pos.has_value()) {
         int dx = last_known_food_pos->first - config.x;
         int dy = last_known_food_pos->second - config.y;
-        perception_vector.push_back(std::sqrt(dx*dx + dy*dy) /  MAX_DISTANCE); // Distance normalisée
-        perception_vector.push_back(std::atan2(dy, dx) / M_PI); // Angle normalisé (-1 à 1)
+        inputs.push_back(std::sqrt(dx*dx + dy*dy) / MAX_DISTANCE);
+        inputs.push_back(std::atan2(dy, dx) / M_PI);
     } else {
-        perception_vector.push_back(0.0); // Pas d'info
-        perception_vector.push_back(0.0);
+        inputs.push_back(0.0);
+        inputs.push_back(0.0);
     }
 
-    // 3. Vision locale (carré de 7x7 = 49 cases * 2 infos = 98 valeurs)
+    // --- 3. Vision Relative (Analyse des alentours) ---
+    // On cherche la nourriture et l'agent les plus proches dans le champ de vision
+
+    double nearest_food_dist = 1.0; // 1.0 = loin / pas vu
+    double nearest_food_angle = 0.0;
+    
+    double nearest_agent_dist = 1.0;
+    double nearest_agent_angle = 0.0;
+    double nearest_agent_social = 0.0;
+
+    bool on_food = false;
+    bool on_book = false;
+
+    // On scanne le carré de vision (comme avant)
     for (int dy = -VISION_RANGE; dy <= VISION_RANGE; ++dy) {
         for (int dx = -VISION_RANGE; dx <= VISION_RANGE; ++dx) {
-            int current_x = config.x + dx;
-            int current_y = config.y + dy;
-
-            // Info 1: Type de la case
-            if (map.isValidPosition(current_x, current_y)) {
-                perception_vector.push_back(static_cast<double>(map.getCell(current_x, current_y)) / 10.0);
-            } else {
-                perception_vector.push_back(static_cast<double>(CellType::WATER) /  10.0); // Hors de la carte = eau
+            if (dx == 0 && dy == 0) {
+                // Analyse de la case sur laquelle on est
+                CellType current_cell = map.getCell(config.x, config.y);
+                if (current_cell == CellType::APPLE || current_cell == CellType::CHAMPIGNON_LUMINEUX) on_food = true;
+                if (current_cell == CellType::BOOK) on_book = true;
+                continue; 
             }
 
-            // Info 2: Présence d'un agent
-            bool agent_found = false;
-            double social_score = 0.0;
-            if (dx != 0 || dy != 0) { // Ne pas se détecter soi-même
-                for (const auto& other : all_agents) {
-                    if (other.getX() == current_x && other.getY() == current_y) {
-                        agent_found = true;
-                        social_score = std::tanh(getSocialScoreFor(other.getId()) / 5.0);
-                        break;
+            int cx = config.x + dx;
+            int cy = config.y + dy;
+            
+            double dist = std::sqrt(dx*dx + dy*dy) / (double)VISION_RANGE; // Normalisé 0-1
+            double angle = std::atan2(dy, dx) / M_PI; // Normalisé -1 à 1
+
+            // A. Chercher nourriture
+            CellType cell = map.getCell(cx, cy);
+            if (cell == CellType::APPLE || cell == CellType::CHAMPIGNON_LUMINEUX) {
+                if (dist < nearest_food_dist) {
+                    nearest_food_dist = dist;
+                    nearest_food_angle = angle;
+                }
+            }
+
+            // B. Chercher agents
+            for (const auto& other : all_agents) {
+                if (other.getId() != this->getId() && other.getX() == cx && other.getY() == cy) {
+                    if (dist < nearest_agent_dist) {
+                        nearest_agent_dist = dist;
+                        nearest_agent_angle = angle;
+                        nearest_agent_social = std::tanh(getSocialScoreFor(other.getId()) / 5.0);
                     }
                 }
             }
-            perception_vector.push_back(agent_found ? 1.0 : 0.0);
-            perception_vector.push_back(social_score);
         }
     }
-    return perception_vector;
+
+    // --- Remplissage du vecteur (7 neurones) ---
+    inputs.push_back(nearest_food_dist);
+    inputs.push_back(nearest_food_angle);
+    
+    inputs.push_back(nearest_agent_dist);
+    inputs.push_back(nearest_agent_angle);
+    inputs.push_back(nearest_agent_social);
+
+    inputs.push_back(on_food ? 1.0 : 0.0); // "Suis-je sur à manger ?"
+    inputs.push_back(on_book ? 1.0 : 0.0); // "Suis-je sur un livre ?"
+
+    return inputs;
 }
 
 
