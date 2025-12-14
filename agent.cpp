@@ -12,8 +12,6 @@ Agent::Agent(const std::string& name, unsigned int id, int startX, int startY, i
 
 
 // L'agent observe son environnement et le transforme en vecteur pour son cerveau
-// Dans agent.cpp
-
 std::vector<double> Agent::perceive(const Map& map, const std::vector<Agent>& all_agents, bool is_day) {
     std::vector<double> inputs;
     inputs.reserve(Agent::PERCEPTION_SIZE);
