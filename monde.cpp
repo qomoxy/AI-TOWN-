@@ -1,5 +1,6 @@
 #include "monde.h"
 #include "Agent.h" 
+#include "SimulationConfig.h"
 #include <iostream>
 #include <vector>
 
