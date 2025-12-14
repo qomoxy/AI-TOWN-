@@ -31,10 +31,10 @@ void Map::startRegrowth(int x, int y, CellType original_food_type) {
         CellType becomes = CellType::EMPTY;
 
         if (original_food_type == CellType::APPLE) {
-            time = 50; // Repousse plus vite
+            time = TIME_REGROWTH_APPLE ; // Repousse plus vite
             becomes = CellType::EMPTY;
         } else if (original_food_type == CellType::CHAMPIGNON_LUMINEUX) {
-            time = 150; // Plus long à repousser
+            time = TIME_REGROWTH_CHAMP ; // Plus long à repousser
             becomes = CellType::FOREST;
         }
 
@@ -64,8 +64,8 @@ void Map::updateWorld(bool is_day, std::mt19937& rng) {
         for (int x = 0; x < width; ++x) {
             // Un champignon lumineux n'apparaît que la nuit sur une case de forêt
             if (grid[y][x] == CellType::FOREST && !is_day) {
-                 std::uniform_int_distribution<int> distrib(0, 2000);
-                 if(distrib(rng) < 1) {
+                 std::uniform_int_distribution<int> distrib(0, CHANCE_MUSHROOM_SPAWN);
+                 if(distrib(rng) == 0) {
                     grid[y][x] = CellType::CHAMPIGNON_LUMINEUX;
                  }
             // S'il fait jour, un champignon lumineux redevient une simple forêt
@@ -81,18 +81,18 @@ void Map::generateRandomWorld(std::mt19937& rng) {
     std::uniform_int_distribution<int> dist_w(0, width - 1);
     std::uniform_int_distribution<int> dist_h(0, height - 1);
 
-    for (int i = 0; i < (width * height) / 10; ++i) {
+    for (int i = 0; i < (width * height) * RATIO_FOREST ; ++i) {
         grid[dist_h(rng)][dist_w(rng)] = CellType::FOREST;
         grid[dist_h(rng)][dist_w(rng)] = CellType::WATER;
     }
-    for (int i = 0; i < (width * height) / 20; ++i) {
+    for (int i = 0; i < (width * height) * RATIO_APPLE ; ++i) {
         int x = dist_w(rng);
         int y = dist_h(rng);
         if (grid[y][x] == CellType::EMPTY) {
             grid[y][x] = CellType::APPLE;
         }
     }
-     for (int i = 0; i < (width * height) / 50; ++i) {
+     for (int i = 0; i < (width * height) * RATIO_BOOK ; ++i) {
         int x = dist_w(rng);
         int y = dist_h(rng);
         if (grid[y][x] == CellType::EMPTY) {
