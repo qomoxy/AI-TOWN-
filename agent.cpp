@@ -65,8 +65,8 @@ std::vector<double> Agent::perceive(const Map& map, const std::vector<Agent>& al
 
 
 // L'agent utilise son cerveau pour prendre une décision à partir de ses perceptions
-std::vector<double> Agent::think(const std::vector<double>& input) {
-    return brain.forward(unput);
+std::vector<double> Agent::think(const std::vector<double>& perception_vector) {
+    return brain.forward(perception_vector);
 }
 
 
