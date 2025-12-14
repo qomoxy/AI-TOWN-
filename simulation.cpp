@@ -240,6 +240,14 @@ void Simulation::run() {
         is_day = (time_of_day < DAY_DURATION);
     }
 
+   if (!agents.empty()) {
+        auto best_agent = std::max_element(agents.begin(), agents.end(), 
+            [](const Agent& a, const Agent& b) { return a.getFitness() < b.getFitness(); });
+        
+        best_agent->saveBrain("best_brain.txt");
+        std::cout << "Cerveau du meilleur agent (ID: " << best_agent->getId() << ") sauvegardé dans 'best_brain.txt'" << std::endl;
+    }
+
     logfile.close();
     social_logfile.close();
 }
