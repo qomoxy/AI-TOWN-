@@ -1,4 +1,5 @@
 #include "Agent.h"
+#include "SimulationConfig.h"
 #include <cmath>
 #include <fstream>
 #include <algorithm>
@@ -14,7 +15,7 @@ Agent::Agent(const std::string& name, unsigned int id, int startX, int startY, i
 // L'agent observe son environnement et le transforme en vecteur pour son cerveau
 std::vector<double> Agent::perceive(const Map& map, const std::vector<Agent>& all_agents, bool is_day) {
     std::vector<double> inputs;
-    inputs.reserve(Agent::PERCEPTION_SIZE);
+    inputs.reserve(INPUT_SIZE);
 
     // --- 1. État Interne (2 neurones) ---
     inputs.push_back(config.energie / 100.0);
@@ -110,15 +111,15 @@ void Agent::_eat(Map& map) {
     CellType cell_type = map.getCell(config.x, config.y);
     int nutrition = 0;
     if (cell_type == CellType::APPLE) {
-        nutrition = 40;
+        nutrition = GAIN_ENERGY_APPLE;
         
     } else if (cell_type == CellType::CHAMPIGNON_LUMINEUX) {
-        nutrition = 60;
+        nutrition = GAIN_ENERGY_CHAMP;
     }
 
     if (nutrition > 0) {
-        config.satisfaction = std::min(100.0, config.satisfaction + 2.0);
-        config.energie = std::min(100.0, config.energie + nutrition);
+        config.satisfaction = std::min(MAX_STAT, config.satisfaction + GAIN_SATISFACTION_EAT);
+        config.energie = std::min(MAX_STAT, config.energie + nutrition);
         map.startRegrowth(config.x, config.y, cell_type); // La map gère la repousse
     }
 }
@@ -180,7 +181,7 @@ void Agent::act(const std::vector<double>& decision_vector, Map& map, std::vecto
     switch (action_choice) {
         case 0: // Manger
             _eat(map);
-            config.energie = std::max(0.0, config.energie - EAT_COST);
+            config.energie = std::max(0.0, config.energie - COST_EAT);
             break;
 
         case 1: // Parler
@@ -195,38 +196,38 @@ void Agent::act(const std::vector<double>& decision_vector, Map& map, std::vecto
                     target->updateSocialScoreFor(this->getId(), 1);
                 }
             }
-            config.energie = std::max(0.0, config.energie - TALK_COST);
+            config.energie = std::max(0.0, config.energie - COST_TALK);
             break;
 
         case 2: // Dormir
             if (!is_day) {
-                config.energie = std::min(100.0, config.energie + 25);
+                config.energie = std::min(MAX_STAT, config.energie + GAIN_ENERGY_SLEEP);
             } else {
-                config.energie = std::max(0.0, config.energie - DAY_SLEEP_PENALTY);
+                config.energie = std::max(0.0, config.energie - COST_SLEEP_PENALTY_DAY);
             }
             break;
 
         case 3: // Interagir avec objet (livre)
             _interact(map);
-            config.energie = std::max(0.0, config.energie - INTERACT_COST);
+            config.energie = std::max(0.0, config.energie - COST_INTERACT);
             break;
 
         // Toutes les autres décisions (4, 5, 6, 7...) mènent à un mouvement
         default: 
             _move(map, rng);
-            config.energie = std::max(0.0, config.energie - MOVE_COST);
+            config.energie = std::max(0.0, config.energie - COST_MOVE );
             break;
     }
 
     // Coût de la vie (appliqué à chaque tour, quelle que soit l'action)
-    config.energie = std::max(0.0, config.energie - LIVING_COST);
+    config.energie = std::max(0.0, config.energie - COST_LIVING );
 }
 
 
 // --- Le reste des fonctions reste inchangé ---
 
 void Agent::addSatisfaction(double amount) {
-    config.satisfaction = std::min(100.0, config.satisfaction + amount);
+    config.satisfaction = std::min(MAX_STAT, config.satisfaction + amount);
 }
 
 int Agent::getSocialScoreFor(unsigned int agent_id) const {
