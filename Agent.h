@@ -58,7 +58,7 @@ public:
     void setBrain(const LSTM& new_brain) { this->brain = new_brain; }
 
     double getFitness() const { 
-        return (config.energie + 1.0) * (config.satisfaction + 1.0); 
+        return std::max(0.0, config.energie + 1.0) * (config.satisfaction + 1.0); 
     }
 
     int getSocialScoreFor(unsigned int agent_id) const;
