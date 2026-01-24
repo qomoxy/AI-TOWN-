@@ -169,7 +169,7 @@ void Agent::act(const std::vector<double>& decision_vector, Map& map, std::vecto
     auto max_it = std::max_element(decision_vector.begin(), decision_vector.end());
     int action_choice = std::distance(decision_vector.begin(), max_it);
 
-    // Coût de base des actions, pour ne pas avoir de "magie" dans le code
+    
     const double EAT_COST = 0.0;
     const double TALK_COST = 1.0;
     const double DAY_SLEEP_PENALTY = 1.0;
@@ -224,7 +224,6 @@ void Agent::act(const std::vector<double>& decision_vector, Map& map, std::vecto
 }
 
 
-// --- Le reste des fonctions reste inchangé ---
 
 void Agent::addSatisfaction(double amount) {
     config.satisfaction = std::min(MAX_STAT, config.satisfaction + amount);
@@ -245,6 +244,7 @@ void Agent::updateSocialScoreFor(unsigned int agent_id, int change) {
 void Agent::receiveFoodInfo(std::pair<int, int> pos) {
     last_known_food_pos = pos;
 }
+
 // Fonctions pour l'évolution
 void Agent::mutateBrain(double mutationRate) {
     brain.mutate(mutationRate);
