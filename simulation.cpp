@@ -14,7 +14,7 @@ Simulation::Simulation(int map_width, int map_height, int num_agents)
 
     map.generateRandomWorld(rng);
 
-    // ** CORRECTION : Les agents apparaissent à des positions aléatoires et valides **
+    
     std::uniform_int_distribution<int> dist_x(0, map.getWidth() - 1);
     std::uniform_int_distribution<int> dist_y(0, map.getHeight() - 1);
     std::set<std::pair<int, int>> occupied_positions; // Pour éviter les superpositions
@@ -47,7 +47,7 @@ Simulation::Simulation(int map_width, int map_height, int num_agents)
 
 void Simulation::evolvePopulation() {
     if (agents.empty()) {
-        // Optionnel : repeupler artificiellement si tout le monde est mort
+        
         std::cout << "Extinction totale. Fin de la simulation ou repeuplement d'urgence." << std::endl;
         return; 
     }
