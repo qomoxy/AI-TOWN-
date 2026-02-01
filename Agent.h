@@ -7,6 +7,7 @@
 #include <utility> 
 #include <optional>
 #include <fstream>
+#include <map>  
 
 struct AgentConfig { 
     std::string name;
@@ -19,19 +20,21 @@ struct AgentConfig {
     // Position & Apparence
     int x, y;
     char symbol;
-    
 };
 
 class Agent {
 private:
-
     LSTM brain;
-    
     AgentConfig config;
     double fitness = 0.0;
 
     std::map<unsigned int, int> social_memory;
     std::optional<std::pair<int, int>> last_known_food_pos;
+
+    std::pair<double, double> findClosestFood(const Map& map) const;
+    std::pair<double, double> findClosestAgent(const std::vector<Agent>& all_agents) const;
+    int countNearbyAgents(const std::vector<Agent>& all_agents, int radius) const;
+    double getAverageSocialScore() const; 
 
     // Fonctions d'action privées pour une meilleure lisibilité
     void _eat(Map& map);
@@ -40,7 +43,6 @@ private:
     Agent* _findNearbyAgent(std::vector<Agent>& all_agents);
 
 public:
-    
     // Constructeur 
     Agent(const std::string& name, unsigned int id, int startX, int startY, int input_size, int hidden_size);
 
@@ -51,12 +53,13 @@ public:
     const LSTM& getBrain() const { return brain; } // Pour le breeding
     int getX() const { return config.x; }
     int getY() const { return config.y; }
-    unsigned int getId() const {return config.id; }
-    double getEnergie() const {return config.energie; }
-    double getSatisfaction() const {return config.satisfaction; }
-    int getSocialMemorySize() const {return social_memory.size(); }
+    unsigned int getId() const { return config.id; }
+    double getEnergie() const { return config.energie; }
+    double getSatisfaction() const { return config.satisfaction; }
+    int getSocialMemorySize() const { return social_memory.size(); }
     void setBrain(const LSTM& new_brain) { this->brain = new_brain; }
 
+   
     double getFitness() const { 
         return std::max(0.0, config.energie + 1.0) * (config.satisfaction + 1.0); 
     }
@@ -64,7 +67,6 @@ public:
     int getSocialScoreFor(unsigned int agent_id) const;
     void updateSocialScoreFor(unsigned int agent_id, int change);
     void addSatisfaction(double amount);
-
 
     // Logique de l'agent
     std::vector<double> perceive(const Map& map, const std::vector<Agent>& all_agents, bool is_day);
@@ -78,7 +80,6 @@ public:
     Agent breedWith(const Agent& partner, const std::string& childName, unsigned int childId, int startX, int startY) const;
 
     void saveBrain(const std::string& filename) const {
-    brain.saveBrain(filename);
+        brain.saveBrain(filename);
     }
 };
-

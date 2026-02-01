@@ -32,10 +32,10 @@ void Map::startRegrowth(int x, int y, CellType original_food_type) {
         CellType becomes = CellType::EMPTY;
 
         if (original_food_type == CellType::APPLE) {
-            time = TIME_REGROWTH_APPLE ; // Repousse plus vite
+            time = TIME_REGROWTH_APPLE; 
             becomes = CellType::EMPTY;
         } else if (original_food_type == CellType::CHAMPIGNON_LUMINEUX) {
-            time = TIME_REGROWTH_CHAMP ; // Plus long à repousser
+            time = TIME_REGROWTH_CHAMP; 
             becomes = CellType::FOREST;
         }
 
@@ -54,7 +54,7 @@ void Map::updateWorld(bool is_day, std::mt19937& rng) {
         if (it->second.regrowth_time <= 0) {
             // Le temps est écoulé, la ressource réapparaît
             setCell(it->first.first, it->first.second, it->second.type);
-            it = regrowth_timers.erase(it); // On supprime le minuteur
+            it = regrowth_timers.erase(it); 
         } else {
             ++it;
         }
@@ -65,10 +65,10 @@ void Map::updateWorld(bool is_day, std::mt19937& rng) {
         for (int x = 0; x < width; ++x) {
             // Un champignon lumineux n'apparaît que la nuit sur une case de forêt
             if (grid[y][x] == CellType::FOREST && !is_day) {
-                 std::uniform_int_distribution<int> distrib(0, CHANCE_MUSHROOM_SPAWN);
-                 if(distrib(rng) == 0) {
+                std::uniform_int_distribution<int> distrib(0, CHANCE_MUSHROOM_SPAWN);
+                if(distrib(rng) == 0) {
                     grid[y][x] = CellType::CHAMPIGNON_LUMINEUX;
-                 }
+                }
             // S'il fait jour, un champignon lumineux redevient une simple forêt
             } else if (is_day && grid[y][x] == CellType::CHAMPIGNON_LUMINEUX) {
                 grid[y][x] = CellType::FOREST;
@@ -82,18 +82,27 @@ void Map::generateRandomWorld(std::mt19937& rng) {
     std::uniform_int_distribution<int> dist_w(0, width - 1);
     std::uniform_int_distribution<int> dist_h(0, height - 1);
 
-    for (int i = 0; i < (width * height) * RATIO_FOREST ; ++i) {
+    // Générer les forêts
+    for (int i = 0; i < (width * height) * RATIO_FOREST; ++i) {
         grid[dist_h(rng)][dist_w(rng)] = CellType::FOREST;
+    }
+    
+    // Générer l'eau 
+    for (int i = 0; i < (width * height) * RATIO_WATER; ++i) {
         grid[dist_h(rng)][dist_w(rng)] = CellType::WATER;
     }
-    for (int i = 0; i < (width * height) * RATIO_APPLE ; ++i) {
+    
+    // Générer les pommes (seulement sur cases vides)
+    for (int i = 0; i < (width * height) * RATIO_APPLE; ++i) {
         int x = dist_w(rng);
         int y = dist_h(rng);
         if (grid[y][x] == CellType::EMPTY) {
             grid[y][x] = CellType::APPLE;
         }
     }
-     for (int i = 0; i < (width * height) * RATIO_BOOK ; ++i) {
+    
+    // Générer les livres (seulement sur cases vides)
+    for (int i = 0; i < (width * height) * RATIO_BOOK; ++i) {
         int x = dist_w(rng);
         int y = dist_h(rng);
         if (grid[y][x] == CellType::EMPTY) {
@@ -136,4 +145,3 @@ void Map::display(const std::vector<Agent>& agents) {
         std::cout << std::endl;
     }
 }
-
