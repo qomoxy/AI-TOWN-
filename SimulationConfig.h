@@ -35,12 +35,12 @@ const double COST_TALK = 1.0;
 const double COST_INTERACT = 1.0;
 const double COST_MOVE = 1.0;
 const double COST_LIVING = 0.5; // Non utilisé avec la nouvelle version
-const double COST_SLEEP_PENALTY_DAY = 1.0; // Non utilisé
+const double COST_SLEEP_PENALTY_DAY = 0; // Non utilisé
 
 // --- Gains (Energie & Satisfaction) ---
-const int GAIN_ENERGY_APPLE = 40;
-const int GAIN_ENERGY_CHAMP = 60;
-const int GAIN_ENERGY_SLEEP = 25;  
+const int GAIN_ENERGY_APPLE = 100;
+const int GAIN_ENERGY_CHAMP = 100;
+const int GAIN_ENERGY_SLEEP = 40;  
 
 const double GAIN_SATISFACTION_EAT = 2.0;
 const double GAIN_SATISFACTION_BOOK = 15.0;
@@ -71,14 +71,14 @@ const double RATIO_BOOK = 0.02;
 const int EVOLUTION_PERIOD = 5; // Évolution tous les X jours
 
 // Mutation
-const double MUTATION_RATE_NORMAL = 0.15;
-const double MUTATION_RATE_HIGH = 0.45;
-const int STAGNATION_THRESHOLD = 4; // Nb de gén. sans progrès avant mutation forte
+const double MUTATION_RATE_NORMAL = 0.05;
+const double MUTATION_RATE_HIGH = 0.09;
+const int STAGNATION_THRESHOLD = 9; // Nb de gén. sans progrès avant mutation forte
 
 // Sélection (Doit sommer < 1.0 pour laisser place aux enfants)
-const double RATIO_ELITE = 0.1;             // Les meilleurs restent (10%)
+const double RATIO_ELITE = 0.15;             // Les meilleurs restent (10%)
 const double RATIO_RANDOM_SURVIVORS = 0.05; // Chanceux (5%)
-const double RATIO_NEWCOMERS = 0.1;         // Nouveaux immigrants (10%)
+const double RATIO_NEWCOMERS = 0.05;         // Nouveaux immigrants (10%)
 // → Reste 75% pour les enfants issus du crossover
 
 // ==========================================
