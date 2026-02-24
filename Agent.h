@@ -62,7 +62,7 @@ public:
 
    
     double getFitness() const { 
-        return std::max(0.0, config.energie + 1.0) * (config.satisfaction + 1.0); 
+        return config.score_survie;
     }
 
     int getSocialScoreFor(unsigned int agent_id) const;
