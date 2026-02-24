@@ -40,7 +40,7 @@ const double COST_SLEEP_PENALTY_DAY = 0; // Non utilisé
 // --- Gains (Energie & Satisfaction) ---
 const int GAIN_ENERGY_APPLE = 100;
 const int GAIN_ENERGY_CHAMP = 100;
-const int GAIN_ENERGY_SLEEP = 40;  
+const int GAIN_ENERGY_SLEEP = 3;  
 
 const double GAIN_SATISFACTION_EAT = 2.0;
 const double GAIN_SATISFACTION_BOOK = 15.0;
