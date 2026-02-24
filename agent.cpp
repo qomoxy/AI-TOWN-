@@ -202,6 +202,11 @@ void Agent::_interact(Map& map) {
     }
 }
 
+void Agent::resetStat() {
+    config.energie = 70;
+    config.satisfaction = 10;
+}
+
 // Exécution des actions
 void Agent::act(const std::vector<double>& decision_vector, Map& map, std::vector<Agent>& all_agents, bool is_day, std::mt19937& rng) {
     
