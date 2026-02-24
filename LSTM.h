@@ -206,7 +206,7 @@ public:
         auto breed_vector = [&](const std::vector<double>& v1, const std::vector<double>& v2) {
             std::vector<double> result(v1.size());
             for (size_t i = 0; i < v1.size(); ++i) {
-                result[i] = (v1[i] + v2[i]) / 2.0;
+                result[i] = v1[i];
             }
             return result;
         };
@@ -235,6 +235,7 @@ public:
         child_weights.bo = breed_vector(this->weights.bo, parent_weights.bo);
 
         child.setWeights(child_weights);
+        LSTM_child.mutate(0.2);
 
         return child;
     }
