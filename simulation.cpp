@@ -95,6 +95,7 @@ void Simulation::evolvePopulation() {
 
     // 1) Élitisme : Conserver les meilleurs
     for (int i = 0; i < elite_count; ++i) {
+        agents[i].resetStat();
         next_generation.push_back(agents[i]);
     }
 
