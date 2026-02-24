@@ -16,6 +16,7 @@ struct AgentConfig {
     // Stats
     double energie;
     double satisfaction;
+    double score_survie = 0.0;
 
     // Position & Apparence
     int x, y;
