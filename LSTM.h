@@ -41,6 +41,8 @@ public:
 
     LSTM(int input_size, int hidden_size) 
         : input_size(input_size), hidden_size(hidden_size) {
+            std::random_device rd;
+            generator.seed(rd());
             h_prev = std::vector<double>(hidden_size, 0.0);
             c_prev = std::vector<double>(hidden_size, 0.0);
             initialize_weights();
