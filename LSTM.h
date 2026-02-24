@@ -237,7 +237,6 @@ public:
         child_weights.bo = breed_vector(this->weights.bo, parent_weights.bo);
 
         child.setWeights(child_weights);
-        LSTM_child.mutate(0.2);
 
         return child;
     }
