@@ -74,6 +74,7 @@ public:
     void act(const std::vector<double>& decision_vector, Map& map, std::vector<Agent>& all_agents, bool is_day, std::mt19937& rng); 
     void receiveFoodInfo(std::pair<int, int> pos);
     void logSocialMemory(int current_day, std::ofstream& logfile) const;
+    void resetStat();
 
     // Évolution
     void mutateBrain(double mutationRate);
