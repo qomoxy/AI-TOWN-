@@ -169,11 +169,7 @@ void Agent::_eat(Map& map) {
         map.startRegrowth(config.x, config.y, cell_type);
     }
 }
-
-void Agent::_move(Map& map, std::mt19937& rng) {
-    std::uniform_int_distribution<int> distrib(-1, 1);
-    int dx = distrib(rng);
-    int dy = distrib(rng);
+void Agent::_move(Map& map, int dx, int dy) {
     int newX = config.x + dx;
     int newY = config.y + dy;
     if (map.isValidPosition(newX, newY) && map.getCell(newX, newY) != CellType::WATER) {
@@ -249,9 +245,10 @@ void Agent::act(const std::vector<double>& decision_vector, Map& map, std::vecto
             break;
 
         // Toutes les autres décisions (4, 5, 6, 7...) mènent à un mouvement
-        default: 
-            _move(map, rng);
-            break;
+        case 4: _move(map, 0, -1); break; // Haut
+        case 5: _move(map, 0, 1);  break; // Bas
+        case 6: _move(map, -1, 0); break; // Gauche
+        default: _move(map, 1, 0);  break; // Droite
     }
 
     // Coût de vie unique à la fin 
