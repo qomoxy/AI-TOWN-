@@ -201,6 +201,7 @@ void Agent::_interact(Map& map) {
 void Agent::resetStat() {
     config.energie = 70;
     config.satisfaction = 10;
+    config.score_survie = 0.0;
 }
 
 // Exécution des actions
