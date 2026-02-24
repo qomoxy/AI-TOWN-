@@ -249,6 +249,7 @@ void Agent::act(const std::vector<double>& decision_vector, Map& map, std::vecto
         case 5: _move(map, 0, 1);  break; // Bas
         case 6: _move(map, -1, 0); break; // Gauche
         default: _move(map, 1, 0);  break; // Droite
+        
     }
 
     // Coût de vie unique à la fin 
@@ -256,6 +257,8 @@ void Agent::act(const std::vector<double>& decision_vector, Map& map, std::vecto
     config.energie = std::max(0.0, config.energie - living_cost);
 
     config.satisfaction = std::max(0.0, config.satisfaction - 0.5);
+
+    config.score_survie += (config.energie + 1.0) * (config.satisfaction + 1.0);
 }
 
 
