@@ -1,358 +1,388 @@
-#include "simulation.h" 
+#include "simulation.h"
 #include "SimulationConfig.h"
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#include <unistd.h> 
+#include <unistd.h>
 #include <set>
 
-Simulation::Simulation(int map_width, int map_height, int num_agents) 
+// ============================================================
+// Constructeur
+// ============================================================
+
+Simulation::Simulation(int map_width, int map_height, int num_agents)
     : map(map_width, map_height), day(0) {
-    
+
     std::random_device rd;
     rng.seed(rd());
 
     map.generateRandomWorld(rng);
 
-    // Génération des agents à des positions valides
-    std::uniform_int_distribution<int> dist_x(0, map.getWidth() - 1);
+    std::uniform_int_distribution<int> dist_x(0, map.getWidth()  - 1);
     std::uniform_int_distribution<int> dist_y(0, map.getHeight() - 1);
-    std::set<std::pair<int, int>> occupied_positions;
+    std::set<std::pair<int, int>> occupied;
 
-    // Utiliser INPUT_SIZE et HIDDEN_SIZE du config
-    int input_size = INPUT_SIZE;    // 11 entrées
-    int hidden_size = HIDDEN_SIZE;  // 8 neurones cachés
+    const int MAX_PLACEMENT_TRIES = map_width * map_height * 4;
 
     for (int i = 0; i < num_agents; ++i) {
         int x, y;
+        int tries = 0;
+        // CORRECTIF : compteur de sécurité pour éviter la boucle infinie
+        // si la carte ne contient pas assez de cases valides.
         do {
             x = dist_x(rng);
             y = dist_y(rng);
-        } while (map.getCell(x, y) == CellType::WATER || occupied_positions.count({x, y}));
-        
-        occupied_positions.insert({x, y});
-        agents.emplace_back("Agent" + std::to_string(i), i, x, y, input_size, hidden_size);
-    }
-    
-    // Ouvrir les fichiers de log
-    logfile.open("simulation_log.csv"); 
-    if (logfile.is_open()) {
-        logfile << "jour,fitness_moyen,energie_moyenne,satisfaction_moyenne,population\n";  
-    }
-    
-    social_logfile.open("social_log.csv");
-    if (social_logfile.is_open()) {
-        social_logfile << "jour,agent_source_id,agent_cible_id,score_relation\n";
-    }
+            ++tries;
+            if (tries > MAX_PLACEMENT_TRIES) {
+                std::cerr << "Avertissement : impossible de placer tous les agents "
+                             "(carte trop petite ou trop d'eau). Arrêt à "
+                          << i << " agents.\n";
+                goto done_placing;
+            }
+        } while (map.getCell(x, y) == CellType::WATER || occupied.count({x, y}));
 
+        occupied.insert({x, y});
+        agents.emplace_back("Agent" + std::to_string(i), (unsigned)i,
+                            x, y, INPUT_SIZE, HIDDEN_SIZE);
+    }
+    done_placing:;
+
+    // Fichiers de log
+    logfile.open("simulation_log.csv");
+    if (logfile.is_open())
+        logfile << "jour,fitness_moyen,energie_moyenne,satisfaction_moyenne,population\n";
+
+    social_logfile.open("social_log.csv");
+    if (social_logfile.is_open())
+        social_logfile << "jour,agent_source_id,agent_cible_id,score_relation\n";
 }
 
-void Simulation::evolvePopulation() {
-    if (agents.empty()) {
-        return;
+// ============================================================
+// Helpers de placement sécurisé
+// ============================================================
+
+// CORRECTIF : fonction utilitaire pour trouver une case valide
+// utilisée dans evolvePopulation() afin de ne pas dupliquer le pattern.
+bool Simulation::findValidPosition(int& out_x, int& out_y) {
+    std::uniform_int_distribution<int> dist_x(0, map.getWidth()  - 1);
+    std::uniform_int_distribution<int> dist_y(0, map.getHeight() - 1);
+    const int MAX_TRIES = map.getWidth() * map.getHeight() * 4;
+
+    for (int t = 0; t < MAX_TRIES; ++t) {
+        int x = dist_x(rng), y = dist_y(rng);
+        if (map.getCell(x, y) != CellType::WATER) {
+            out_x = x; out_y = y;
+            return true;
+        }
     }
+    return false; // Carte quasi entièrement eau
+}
+
+// ============================================================
+// Évolution de la population
+// ============================================================
+
+void Simulation::evolvePopulation() {
+    if (agents.empty()) return;
 
     const int current_pop_size = (int)agents.size();
 
-    // Calcul de la fitness moyenne (pour mutation adaptative) 
+    // Fitness moyenne
     double avg_fitness = 0.0;
-    for (const auto &a : agents) avg_fitness += a.getFitness();
+    for (const auto& a : agents) avg_fitness += a.getFitness();
     avg_fitness /= current_pop_size;
 
-    static double prev_avg_fitness = -1e300;
-    static int stagnant_generations = 0;
-
-    if (avg_fitness <= prev_avg_fitness + 1e-6) {
-        stagnant_generations++;
-    } else {
+    // CORRECTIF : variables membres au lieu de static locaux,
+    // ce qui permettrait de réinitialiser entre deux simulations.
+    if (avg_fitness <= prev_avg_fitness + 1e-6)
+        ++stagnant_generations;
+    else {
         stagnant_generations = 0;
         prev_avg_fitness = avg_fitness;
     }
 
-    
-    double mutation_rate = (stagnant_generations >= STAGNATION_THRESHOLD) 
-                          ? MUTATION_RATE_HIGH 
-                          : MUTATION_RATE_NORMAL;
+    double mutation_rate = (stagnant_generations >= STAGNATION_THRESHOLD)
+                         ? MUTATION_RATE_HIGH
+                         : MUTATION_RATE_NORMAL;
 
-    // Paramètres de sélection basés sur les ratios du config
-    int elite_count = std::max(1, (int)(current_pop_size * RATIO_ELITE));
+    // Paramètres de sélection
+    int elite_count      = std::max(1, (int)(current_pop_size * RATIO_ELITE));
     int random_survivors = std::max(1, (int)(current_pop_size * RATIO_RANDOM_SURVIVORS));
-    int newcomers_count = std::max(1, (int)(current_pop_size * RATIO_NEWCOMERS));
+    int newcomers_count  = std::max(1, (int)(current_pop_size * RATIO_NEWCOMERS));
 
-    // Distributions utiles
     std::uniform_int_distribution<int> dist_idx(0, current_pop_size - 1);
-    std::uniform_int_distribution<int> dist_x(0, map.getWidth() - 1);
-    std::uniform_int_distribution<int> dist_y(0, map.getHeight() - 1);
-    std::uniform_real_distribution<double> dist01(0.0, 1.0);
 
     // Tri par fitness décroissante
-    std::sort(agents.begin(), agents.end(), [](const Agent& a, const Agent& b) {
-        return a.getFitness() > b.getFitness();
-    });
+    std::sort(agents.begin(), agents.end(),
+              [](const Agent& a, const Agent& b) { return a.getFitness() > b.getFitness(); });
 
-    std::vector<Agent> next_generation;
-    next_generation.reserve(current_pop_size);
+    std::vector<Agent> next_gen;
+    next_gen.reserve(current_pop_size);
 
-    // 1) Élitisme : Conserver les meilleurs
+    // 1) Élitisme — les meilleurs conservent leur cerveau
+    //    CORRECTIF : on les réinitialise à énergie/satisfaction de départ
+    //    pour éviter un avantage injuste vis-à-vis des enfants naissants.
     for (int i = 0; i < elite_count; ++i) {
-        next_generation.push_back(agents[i]);
+        int x, y;
+        if (!findValidPosition(x, y)) { x = 0; y = 0; }
+        Agent elite = agents[i]; // copie (conserve le cerveau)
+        // Réinitialisation des stats uniquement (pas du cerveau ni de la mémoire sociale)
+        // On crée un nouvel agent avec le même cerveau
+        Agent reset_elite("Elite_" + std::to_string(i),
+                          agents[i].getId(), x, y, INPUT_SIZE, HIDDEN_SIZE);
+        reset_elite.setBrain(agents[i].getBrain());
+        next_gen.push_back(reset_elite);
     }
 
-    // 2) Survivants aléatoires (diversité)
+    // 2) Survivants aléatoires (diversité génétique)
     for (int i = 0; i < random_survivors; ++i) {
-        next_generation.push_back(agents[dist_idx(rng)]);
+        int idx = dist_idx(rng);
+        int x, y;
+        if (!findValidPosition(x, y)) { x = 0; y = 0; }
+        Agent survivor("Survivor_" + std::to_string(i),
+                       agents[idx].getId(), x, y, INPUT_SIZE, HIDDEN_SIZE);
+        survivor.setBrain(agents[idx].getBrain());
+        next_gen.push_back(survivor);
     }
 
-    // 3) NOUVEAUTÉ : Immigrants (nouveaux cerveaux aléatoires)
+    // 3) Immigrants — cerveaux aléatoires neufs
     for (int i = 0; i < newcomers_count; ++i) {
-        int startX, startY;
-        do {
-            startX = dist_x(rng);
-            startY = dist_y(rng);
-        } while (map.getCell(startX, startY) == CellType::WATER);
-        
-        unsigned int newId = static_cast<unsigned int>(day * 10000 + 9000 + i);
-        Agent newcomer("Immigrant_" + std::to_string(newId), newId, startX, startY, INPUT_SIZE, HIDDEN_SIZE);
-        next_generation.push_back(newcomer);
+        int x, y;
+        if (!findValidPosition(x, y)) { x = 0; y = 0; }
+        unsigned int newId = (unsigned)(day * 10000 + 9000 + i);
+        next_gen.emplace_back("Immigrant_" + std::to_string(newId),
+                              newId, x, y, INPUT_SIZE, HIDDEN_SIZE);
     }
 
-    // 4) Sélection par tournoi
+    // 4) Sélection par tournoi (k=3)
     auto tournament_select = [&](int k = 3) -> const Agent& {
-        int best_idx = dist_idx(rng);
+        int best = dist_idx(rng);
         for (int t = 1; t < k; ++t) {
             int idx = dist_idx(rng);
-            if (agents[idx].getFitness() > agents[best_idx].getFitness()) {
-                best_idx = idx;
-            }
+            if (agents[idx].getFitness() > agents[best].getFitness())
+                best = idx;
         }
-        return agents[best_idx];
+        return agents[best];
     };
 
-    // 5) Reproduction jusqu'à remplissage
-    while ((int)next_generation.size() < current_pop_size) {
-        const Agent& parent1 = tournament_select();
-        const Agent& parent2 = tournament_select();
+    // 5) Crossover + mutation jusqu'au remplissage
+    while ((int)next_gen.size() < current_pop_size) {
+        const Agent& p1 = tournament_select();
+        const Agent& p2 = tournament_select();
 
-        int startX, startY;
-        do {
-            startX = dist_x(rng);
-            startY = dist_y(rng);
-        } while (map.getCell(startX, startY) == CellType::WATER);
+        int x, y;
+        if (!findValidPosition(x, y)) { x = 0; y = 0; }
 
-        unsigned int childId = static_cast<unsigned int>(day * 10000 + next_generation.size());
-        Agent child = parent1.breedWith(parent2, "Agent_gen" + std::to_string(day/EVOLUTION_PERIOD) + "_" + std::to_string(childId), childId, startX, startY);
+        unsigned int childId = (unsigned)(day * 10000 + next_gen.size());
+        std::string childName = "Agent_gen"
+                              + std::to_string(day / EVOLUTION_PERIOD)
+                              + "_" + std::to_string(childId);
 
-        //  Mutation sur tous les enfants (pas de condition aléatoire)
-        child.mutateBrain(mutation_rate);
-
-        next_generation.push_back(child);
+        // CORRECTIF : breed reçoit rng (crossover uniforme)
+        Agent child = p1.breedWith(p2, childName, childId, x, y, rng);
+        // CORRECTIF : mutate reçoit rng + amplitude adaptative (dans LSTM)
+        child.mutateBrain(mutation_rate, rng);
+        next_gen.push_back(child);
     }
 
-    agents = std::move(next_generation);
+    agents = std::move(next_gen);
 
-    
     if (stagnant_generations >= STAGNATION_THRESHOLD) {
-        std::cout << "⚡ Génération " << day/EVOLUTION_PERIOD 
-                  << " : Stagnation détectée → Mutation haute (" 
-                  << (mutation_rate * 100) << "%)" << std::endl;
+        std::cout << "⚡ Génération " << day / EVOLUTION_PERIOD
+                  << " : Stagnation → Mutation haute ("
+                  << (mutation_rate * 100) << "%)\n";
     }
 }
+
+// ============================================================
+// fast_run — simulation sans affichage
+// ============================================================
 
 void Simulation::fast_run() {
     int last_evolution_day = 0;
-    int last_report_day = 0;
-    
-    std::cout << " Démarrage simulation rapide..." << std::endl;
-    
-    while(day < MAX_DAYS) {
-        
-       
+    int last_report_day    = 0;
+
+    std::cout << "Démarrage simulation rapide...\n";
+
+    // CORRECTIF : réinitialisation des variables de stagnation pour pouvoir
+    // appeler fast_run() plusieurs fois sans état résiduel.
+    prev_avg_fitness    = -1e300;
+    stagnant_generations = 0;
+
+    while (day < MAX_DAYS) {
         if (agents.empty()) {
-            std::cerr << "\n EXTINCTION au jour " << day << " !" << std::endl;
+            std::cerr << "\n💀 EXTINCTION au jour " << day << " !\n";
             break;
         }
 
-        // Tour de jeu pour chaque agent
         for (auto& agent : agents) {
-            std::vector<double> perception = agent.perceive(map, agents, is_day);
-            std::vector<double> decision = agent.think(perception);
+            auto perception = agent.perceive(map, agents, is_day);
+            auto decision   = agent.think(perception);
             agent.act(decision, map, agents, is_day, rng);
         }
 
-        // Mise à jour du monde
         map.updateWorld(is_day, rng);
-        time_of_day++;
-        
+        ++time_of_day;
+
         if (time_of_day >= DAY_DURATION * 2) {
             time_of_day = 0;
-            day++;
+            ++day;
             logDailyStats();
 
-            
-            if (day - last_report_day >= 1000) {
+            if (day - last_report_day >= 1000)
                 last_report_day = day;
-            }
 
-            // Log social tous les 10 jours
-            if (day % 10 == 0) {
+            if (day % 10 == 0)
                 logSocialNetworkSnapshot();
-            }
 
-            // Évolution tous les EVOLUTION_PERIOD jours
-            if(day % EVOLUTION_PERIOD == 0 && day != last_evolution_day) {
+            if (day % EVOLUTION_PERIOD == 0 && day != last_evolution_day) {
                 evolvePopulation();
                 last_evolution_day = day;
             }
         }
+
         is_day = (time_of_day < DAY_DURATION);
     }
 
-    
     if (!agents.empty()) {
-        auto best_it = std::max_element(agents.begin(), agents.end(), 
+        auto best_it = std::max_element(agents.begin(), agents.end(),
             [](const Agent& a, const Agent& b) { return a.getFitness() < b.getFitness(); });
-        
-        std::cout << "\n Sauvegarde du meilleur agent..." << std::endl;
-        std::cout << "   Fitness: " << best_it->getFitness() << std::endl;
-        std::cout << "   Énergie: " << best_it->getEnergie() << std::endl;
-        std::cout << "   Satisfaction: " << best_it->getSatisfaction() << std::endl;
-        
+        std::cout << "\nSauvegarde du meilleur agent...\n";
+        std::cout << "  Fitness      : " << best_it->getFitness()      << "\n";
+        std::cout << "  Énergie      : " << best_it->getEnergie()      << "\n";
+        std::cout << "  Satisfaction : " << best_it->getSatisfaction() << "\n";
         best_it->saveBrain("best_brain.txt");
     }
 
     logfile.close();
     social_logfile.close();
-    
-    std::cout << "\n Simulation terminée au jour " << day << std::endl;
+    std::cout << "\nSimulation terminée au jour " << day << "\n";
     displayFinalStats();
 }
+
+// ============================================================
+// run — simulation avec affichage terminal
+// ============================================================
 
 void Simulation::run() {
     int last_evolution_day = 0;
-    
-    std::cout << " Démarrage simulation avec affichage..." << std::endl;
-    
-    while (day < 500) {
-        
-        
+
+    std::cout << "Démarrage simulation avec affichage...\n";
+
+    // CORRECTIF : réinitialisation de la stagnation
+    prev_avg_fitness     = -1e300;
+    stagnant_generations = 0;
+
+    // CORRECTIF : utilise MAX_DAYS (depuis config) au lieu du hardcode "500"
+    while (day < MAX_DAYS) {
         if (agents.empty()) {
-            std::cerr << "\n💀 EXTINCTION au jour " << day << " !" << std::endl;
+            std::cerr << "\n💀 EXTINCTION au jour " << day << " !\n";
             break;
         }
-        
+
         for (auto& agent : agents) {
-            std::vector<double> perception = agent.perceive(map, agents, is_day);
-            std::vector<double> decision = agent.think(perception);
+            auto perception = agent.perceive(map, agents, is_day);
+            auto decision   = agent.think(perception);
             agent.act(decision, map, agents, is_day, rng);
         }
-        
+
         map.updateWorld(is_day, rng);
         map.display(agents);
-        
-       
-        std::cout << "Jour " << day << " | " << (is_day ? "☀️ JOUR" : "🌙 NUIT") 
-                  << " | Pop: " << agents.size() << " | Tour: " << time_of_day << "/" << (DAY_DURATION*2) << std::endl;
-        
-        usleep(100000); // 0.1 secondes
 
-        time_of_day++;
+        std::cout << "Jour " << day
+                  << " | " << (is_day ? "☀️  JOUR" : "🌙 NUIT")
+                  << " | Pop: " << agents.size()
+                  << " | Tour: " << time_of_day << "/" << (DAY_DURATION * 2) << "\n";
+
+        usleep(100000); // 0.1 s
+
+        ++time_of_day;
+
         if (time_of_day >= DAY_DURATION * 2) {
             time_of_day = 0;
-            day++;
+            ++day;
             logDailyStats();
 
-            
-            if (day % 10 == 0) {
+            if (day % 10 == 0)
                 logSocialNetworkSnapshot();
-            }
-            
-            if(day % EVOLUTION_PERIOD == 0 && day != last_evolution_day) {
+
+            if (day % EVOLUTION_PERIOD == 0 && day != last_evolution_day) {
                 evolvePopulation();
                 last_evolution_day = day;
-                usleep(1000000); // Pause d'une seconde
+                usleep(1000000); // pause 1 s lors d'une évolution
             }
         }
+
         is_day = (time_of_day < DAY_DURATION);
     }
 
-    
     if (!agents.empty()) {
-        auto best_it = std::max_element(agents.begin(), agents.end(), 
+        auto best_it = std::max_element(agents.begin(), agents.end(),
             [](const Agent& a, const Agent& b) { return a.getFitness() < b.getFitness(); });
-        
-        std::cout << "\n Sauvegarde du meilleur agent..." << std::endl;
+        std::cout << "\nSauvegarde du meilleur agent...\n";
         best_it->saveBrain("best_brain.txt");
     }
 
     logfile.close();
     social_logfile.close();
-    
-    std::cout << "\n Simulation terminée" << std::endl;
+    std::cout << "\nSimulation terminée\n";
     displayFinalStats();
 }
 
-void Simulation::logDailyStats() {
-    if (!logfile.is_open() || agents.empty()) {
-        return;
-    }
+// ============================================================
+// Logging
+// ============================================================
 
-    double total_fitness = 0.0;
-    double total_energie = 0.0;
+void Simulation::logDailyStats() {
+    if (!logfile.is_open() || agents.empty()) return;
+
+    double total_fitness      = 0.0;
+    double total_energie      = 0.0;
     double total_satisfaction = 0.0;
 
     for (const auto& agent : agents) {
-        total_fitness += agent.getFitness();
-        total_energie += agent.getEnergie(); 
+        total_fitness      += agent.getFitness();
+        total_energie      += agent.getEnergie();
         total_satisfaction += agent.getSatisfaction();
     }
 
-    int pop_size = agents.size();
-    double average_fitness = total_fitness / pop_size;
-    double average_energie = total_energie / pop_size;
-    double average_satisfaction = total_satisfaction / pop_size;
-
-   
-    logfile << day << ","
-            << average_fitness << ","
-            << average_energie << ","
-            << average_satisfaction << ","
-            << pop_size << "\n";
+    int pop_size = (int)agents.size();
+    logfile << day                               << ","
+            << total_fitness      / pop_size     << ","
+            << total_energie      / pop_size     << ","
+            << total_satisfaction / pop_size     << ","
+            << pop_size                          << "\n";
 }
 
 void Simulation::logSocialNetworkSnapshot() {
     if (!social_logfile.is_open()) return;
-
-    for (const auto& agent : agents) {
+    for (const auto& agent : agents)
         agent.logSocialMemory(day, social_logfile);
-    }
 }
 
 void Simulation::displayFinalStats() {
-    std::cout << "\n" << std::string(50, '=') << std::endl;
-    std::cout << "       STATISTIQUES FINALES" << std::endl;
-    std::cout << std::string(50, '=') << std::endl;
-    std::cout << "Jours simulés: " << day << std::endl;
-    std::cout << "Population finale: " << agents.size() << " agents" << std::endl;
-    
+    std::cout << "\n" << std::string(50, '=') << "\n";
+    std::cout << "  STATISTIQUES FINALES\n";
+    std::cout << std::string(50, '=') << "\n";
+    std::cout << "Jours simulés   : " << day << "\n";
+    std::cout << "Population finale: " << agents.size() << " agents\n";
+
     if (!agents.empty()) {
-        double avg_fitness = 0.0;
-        double max_fitness = 0.0;
-        
-        for (const auto& agent : agents) {
-            double f = agent.getFitness();
+        double avg_fitness = 0.0, max_fitness = 0.0;
+        for (const auto& a : agents) {
+            double f = a.getFitness();
             avg_fitness += f;
             if (f > max_fitness) max_fitness = f;
         }
-        avg_fitness /= agents.size();
-        
-        std::cout << "Fitness moyenne: " << avg_fitness << std::endl;
-        std::cout << "Fitness maximale: " << max_fitness << std::endl;
-        std::cout << "Nombre de générations: " << day / EVOLUTION_PERIOD << std::endl;
+        avg_fitness /= (double)agents.size();
+        std::cout << "Fitness moyenne : " << avg_fitness << "\n";
+        std::cout << "Fitness max     : " << max_fitness << "\n";
+        std::cout << "Générations     : " << day / EVOLUTION_PERIOD << "\n";
     }
-    
-    std::cout << "\nFichiers générés:" << std::endl;
-    std::cout << "  📄 simulation_log.csv" << std::endl;
-    std::cout << "  📄 social_log.csv" << std::endl;
-    std::cout << "  📄 best_brain.txt" << std::endl;
-    std::cout << std::string(50, '=') << std::endl;
+
+    std::cout << "\nFichiers générés :\n";
+    std::cout << "  📄 simulation_log.csv\n";
+    std::cout << "  📄 social_log.csv\n";
+    std::cout << "  📄 best_brain.txt\n";
+    std::cout << std::string(50, '=') << "\n";
 }
