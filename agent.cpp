@@ -169,7 +169,11 @@ void Agent::_eat(Map& map) {
         map.startRegrowth(config.x, config.y, cell_type);
     }
 }
-void Agent::_move(Map& map, int dx, int dy) {
+
+void Agent::_move(Map& map, std::mt19937& rng) {
+    std::uniform_int_distribution<int> distrib(-1, 1);
+    int dx = distrib(rng);
+    int dy = distrib(rng);
     int newX = config.x + dx;
     int newY = config.y + dy;
     if (map.isValidPosition(newX, newY) && map.getCell(newX, newY) != CellType::WATER) {
@@ -196,12 +200,6 @@ void Agent::_interact(Map& map) {
         addSatisfaction(GAIN_SATISFACTION_BOOK);
         map.setCell(config.x, config.y, CellType::EMPTY);
     }
-}
-
-void Agent::resetStat() {
-    config.energie = 70;
-    config.satisfaction = 10;
-    config.score_survie = 0.0;
 }
 
 // Exécution des actions
@@ -246,11 +244,9 @@ void Agent::act(const std::vector<double>& decision_vector, Map& map, std::vecto
             break;
 
         // Toutes les autres décisions (4, 5, 6, 7...) mènent à un mouvement
-        case 4: _move(map, 0, -1); break; // Haut
-        case 5: _move(map, 0, 1);  break; // Bas
-        case 6: _move(map, -1, 0); break; // Gauche
-        default: _move(map, 1, 0);  break; // Droite
-        
+        default: 
+            _move(map, rng);
+            break;
     }
 
     // Coût de vie unique à la fin 
@@ -258,8 +254,6 @@ void Agent::act(const std::vector<double>& decision_vector, Map& map, std::vecto
     config.energie = std::max(0.0, config.energie - living_cost);
 
     config.satisfaction = std::max(0.0, config.satisfaction - 0.5);
-
-    config.score_survie += (config.energie + 1.0) * (config.satisfaction + 1.0);
 }
 
 

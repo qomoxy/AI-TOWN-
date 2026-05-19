@@ -41,8 +41,6 @@ public:
 
     LSTM(int input_size, int hidden_size) 
         : input_size(input_size), hidden_size(hidden_size) {
-            std::random_device rd;
-            generator.seed(rd());
             h_prev = std::vector<double>(hidden_size, 0.0);
             c_prev = std::vector<double>(hidden_size, 0.0);
             initialize_weights();
@@ -208,7 +206,7 @@ public:
         auto breed_vector = [&](const std::vector<double>& v1, const std::vector<double>& v2) {
             std::vector<double> result(v1.size());
             for (size_t i = 0; i < v1.size(); ++i) {
-                result[i] = v1[i];
+                result[i] = (v1[i] + v2[i]) / 2.0;
             }
             return result;
         };

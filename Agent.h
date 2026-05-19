@@ -16,7 +16,6 @@ struct AgentConfig {
     // Stats
     double energie;
     double satisfaction;
-    double score_survie = 0.0;
 
     // Position & Apparence
     int x, y;
@@ -62,7 +61,7 @@ public:
 
    
     double getFitness() const { 
-        return config.score_survie;
+        return std::max(0.0, config.energie + 1.0) * (config.satisfaction + 1.0); 
     }
 
     int getSocialScoreFor(unsigned int agent_id) const;
@@ -75,7 +74,6 @@ public:
     void act(const std::vector<double>& decision_vector, Map& map, std::vector<Agent>& all_agents, bool is_day, std::mt19937& rng); 
     void receiveFoodInfo(std::pair<int, int> pos);
     void logSocialMemory(int current_day, std::ofstream& logfile) const;
-    void resetStat();
 
     // Évolution
     void mutateBrain(double mutationRate);

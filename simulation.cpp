@@ -95,14 +95,11 @@ void Simulation::evolvePopulation() {
 
     // 1) Élitisme : Conserver les meilleurs
     for (int i = 0; i < elite_count; ++i) {
-        agents[i].resetStat();
         next_generation.push_back(agents[i]);
     }
 
     // 2) Survivants aléatoires (diversité)
     for (int i = 0; i < random_survivors; ++i) {
-        Agent agent_i = agents[dist_idx(rng)];
-        agent_i.resetStat();
         next_generation.push_back(agents[dist_idx(rng)]);
     }
 
